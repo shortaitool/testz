@@ -114,7 +114,7 @@
             color: #ffffff;
         }
 
-        #admin-panel button {
+        #admin-panel button, #admin-login-btn {
             background: #00ffff;
             color: #000;
             cursor: pointer;
@@ -131,10 +131,16 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+
+        #admin-login-btn {
+            width: 200px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <h1>Free Job Test</h1>
+    <button id="admin-login-btn" onclick="promptAdminLogin()">Admin Login</button>
     <div class="button-container" id="button-container">
         <!-- Job buttons will be dynamically added here -->
     </div>
@@ -231,10 +237,8 @@
         // Admin Panel Logic
         const adminPassword = 'admin123'; // Change this to your desired password
 
-        // Check if already logged in
-        if (localStorage.getItem('adminLoggedIn') === 'true') {
-            showAdminPanel();
-        } else {
+        // Prompt for Admin Login
+        function promptAdminLogin() {
             const pass = prompt('Enter Admin Password:');
             if (pass === adminPassword) {
                 localStorage.setItem('adminLoggedIn', 'true');
@@ -244,10 +248,16 @@
             }
         }
 
+        // Show Admin Panel if Logged In
         function showAdminPanel() {
             document.getElementById('admin-panel').style.display = 'block';
             renderAdminJobs();
             renderJobSelect();
+        }
+
+        // Check if already logged in
+        if (localStorage.getItem('adminLoggedIn') === 'true') {
+            showAdminPanel();
         }
 
         // Render Job Categories in Admin
