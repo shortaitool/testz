@@ -2,528 +2,378 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
-<title>राजस्थान ग्रुप डी</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Beautiful Test Theme — Mobile-First</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  :root{
-    --bg:#0b1020; --panel:#131a33; --muted:#273153; --text:#eaf2ff;
-    --cyan:#22d3ee; --blue:#3b82f6; --violet:#8b5cf6; --pink:#ec4899; --amber:#f59e0b;
-    --green:#22c55e; --red:#ef4444; --sky:#38bdf8;
-    --glow:0 0 25px rgba(56,189,248,.35), 0 0 60px rgba(139,92,246,.25);
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background: radial-gradient(1200px 800px at 10% -10%, #111b3f 0%, #0b1020 45%, #060913 100%); color:var(--text); touch-action:manipulation; overscroll-behavior:none;}
-  .container{max-width:1000px; margin:0 auto; padding:14px 14px 96px;}
-  header{background:linear-gradient(120deg, #1f2a4d, #151f3f 55%, #1b1f3a); border:1px solid #21305f; color:#eaf2ff; border-radius:16px; padding:16px; box-shadow: var(--glow); text-align:center; margin:10px 0 16px;}
-  .title{font-size:1.45rem; font-weight:900; letter-spacing:.5px; text-transform:uppercase}
-  .title small{display:block; font-size:.85rem; opacity:.8; margin-top:4px;}
-  .stats{display:flex; gap:10px; justify-content:space-between; margin-top:12px; flex-wrap:wrap}
-  .chip{flex:1; min-width:100px; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 12px; border-radius:999px; font-weight:800; letter-spacing:.3px; border:1px solid #2a376a; background:linear-gradient(180deg,#1b2547,#151d3a); box-shadow:inset 0 -2px 6px rgba(255,255,255,.04);}
-  .chip .dot{width:10px;height:10px;border-radius:50%;}
-  .chip.green .dot{background:var(--green)}
-  .chip.red .dot{background:var(--red)}
-  .chip.cyan .dot{background:var(--sky)}
-  .chip span.value{padding:.2rem .6rem; border-radius:10px; background:#0d1633; border:1px solid #27335f;}
-  .chip.timer{transition:filter .25s ease}
-  .chip.timer.warning{filter: drop-shadow(0 0 10px rgba(239,68,68,.7)); animation:pulse 1s infinite}
-  @keyframes pulse{50%{opacity:.6}}
+/* -------------------- CSS RESET & TOKENS -------------------- */
+:root{
+  --bg: #0b0f1a;
+  --bg-2:#0e1422;
+  --card:#0f172acc; /* glass */
+  --border:#1f2a3d;
+  --muted:#9ca3af;
+  --text:#e5e7eb;
+  --primary:#60a5fa;   /* blue */
+  --accent:#22c55e;    /* green */
+  --danger:#ef4444;    /* red */
+  --warn:#f59e0b;      /* amber */
+  --chip:#111827;
+  --shadow: 0 8px 26px rgba(0,0,0,.35);
+  --radius: 18px;
+  --touch: 48px; /* comfortable touch target */
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(120% 100% at 10% 0%, #0e1422 0%, #0b0f1a 50%, #080c16 100%);
+  color:var(--text);
+  /* prevent layout jump on mobile address bar */
+  min-height: var(--dvh, 100dvh);
+}
 
-  /* Question numbers */
-  .q-nav{overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; background:linear-gradient(180deg,#0e1633,#0b1127); border:1px solid #223160; border-radius:12px; padding:8px; margin:12px 0 16px;}
-  .q-badge{display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; margin:0 6px; border-radius:50%; font-weight:900; cursor:pointer; color:#bcd3ff; background:#1a2550; border:1px solid #2a3a79; transition:transform .12s ease, box-shadow .12s ease}
-  .q-badge.current{outline:2px solid var(--sky); box-shadow:0 0 0 3px rgba(56,189,248,.2)}
-  .q-badge.attended{background:linear-gradient(180deg,#155e39,#0f3f27); color:#eafff3; border-color:#1e7d4e}
-  .q-badge.skipped{background:linear-gradient(180deg,#6b111b,#410a11); color:#ffe5e5; border-color:#7e1825}
-  .q-badge:active{transform:scale(.92)}
+/* Layout: sticky header + sticky qnav + scrollable main + fixed bottom bar */
+.app{ display:flex; flex-direction:column; min-height: var(--dvh, 100dvh); max-height: var(--dvh, 100dvh); overflow:hidden; }
 
-  /* Question box */
-  .card{background:linear-gradient(180deg,#111936,#0e1530); border:1px solid #243164; border-radius:16px; box-shadow:var(--glow); padding:16px; max-height:calc(100vh - 330px); overflow:auto}
-  .q-text{font-size:1.08rem; font-weight:800; margin-bottom:10px}
-  .opt{background:#17224a; border:1px solid #2a3a79; color:#dfe7ff; padding:12px; border-radius:12px; margin:10px 0; cursor:pointer; transition:background .12s ease, transform .05s ease, border-color .12s ease}
-  .opt:hover{background:#1b2856}
-  .opt.selected{background:linear-gradient(180deg,#1e3a8a,#1b2560); border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.25) inset}
-  .opt:active{transform:scale(.98)}
+/* -------------------- HEADER -------------------- */
+header{
+  position:sticky; top:0; z-index:20; backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, #0c1220f2, #0b0f1ad8);
+  border-bottom:1px solid var(--border);
+}
+.header-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 12px; }
+.brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+.logo{ width:40px; height:40px; border-radius:12px; background:conic-gradient(from 180deg,#22c55e,#60a5fa,#a78bfa,#22c55e); box-shadow:0 0 0 3px #101827 inset, 0 6px 18px rgba(0,0,0,.45); }
+.title{ font-size: clamp(16px, 2.6vw, 20px); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  /* Bottom nav */
-  .dock{position:fixed; left:0; right:0; bottom:0; padding:10px; display:flex; gap:10px; background:linear-gradient(to top, #05070f 0%, rgba(5,7,15,.6) 100%); border-top:1px solid #1b2750; backdrop-filter: blur(6px);}
-  .btn{flex:1; font-weight:900; letter-spacing:.3px; padding:14px 12px; border-radius:12px; border:1px solid #2b386d; color:#eaf2ff; background:linear-gradient(180deg,#182356,#121a3e); box-shadow:inset 0 -2px 0 rgba(255,255,255,.06); cursor:pointer; transition:transform .06s ease, box-shadow .18s ease, border-color .18s ease}
-  .btn:active{transform:translateY(1px)}
-  .btn.prev{outline:2px solid transparent}
-  .btn.next{border-color:#2550b6; background:linear-gradient(180deg,#1843a6,#0f2e79)}
-  .btn.submit{border-color:#1e7d4e; background:linear-gradient(180deg,#15633a,#0f3f27)}
-  .btn:hover{box-shadow:0 0 18px rgba(59,130,246,.25)}
+.timer{ font-weight:800; padding:10px 14px; border-radius:999px; letter-spacing:.4px; min-width:124px; text-align:center; background:#0b1424; border:1px solid var(--border); transition: transform .18s ease, box-shadow .2s ease; }
+.timer.warn{ background:#3a1212; color:#fff; box-shadow:0 0 0 2px #7f1d1d inset, 0 0 22px #7f1d1d66; animation:pulse 1s infinite; }
+@keyframes pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
 
-  /* Dashboard */
-  .dash{display:none; position:fixed; inset:0; z-index:50; overflow:auto; padding:16px; background:
-        radial-gradient(800px 600px at 90% -10%, rgba(88,28,135,.18), transparent 60%),
-        radial-gradient(700px 500px at 10% 110%, rgba(14,165,233,.16), transparent 60%),
-        linear-gradient(180deg,#0b1020 0%, #060913 100%);}
-  .dash h2{margin:0 0 10px; font-size:1.25rem}
-  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:12px 0}
-  .kpi{padding:14px; border-radius:14px; color:#001015; font-weight:900; letter-spacing:.3px; border:1px solid #0003; box-shadow:0 6px 18px rgba(0,0,0,.28)}
-  .kpi span{display:block; font-size:1.35rem; margin-top:6px; color:#001}
-  .kpi.total{background:linear-gradient(135deg,#a5f3fc,#38bdf8)}
-  .kpi.att{background:linear-gradient(135deg,#bbf7d0,#22c55e)}
-  .kpi.skp{background:linear-gradient(135deg,#fecaca,#ef4444)}
-  .kpi.cor{background:linear-gradient(135deg,#86efac,#16a34a)}
-  .kpi.wrg{background:linear-gradient(135deg,#fca5a5,#ef4444)}
-  .kpi.acc{background:linear-gradient(135deg,#e9d5ff,#8b5cf6)}
-  .kpi.scr{background:linear-gradient(135deg,#fde68a,#f59e0b)}
-  .kpi.tim{background:linear-gradient(135deg,#bfdbfe,#3b82f6)}
-  .section{background:linear-gradient(180deg,#0e1530,#0b1127); border:1px solid #223160; border-radius:14px; padding:12px; margin:14px 0; box-shadow:var(--glow)}
-  .result-item{background:#121a3b; border:1px solid #253573; padding:10px; border-radius:10px; margin:10px 0}
-  .correct{color:#22c55e; font-weight:800}
-  .incorrect{color:#ef4444; font-weight:800}
-  .actions{display:flex; gap:10px; margin:14px 0}
-  .btn.action{flex:1}
-  .btn.refresh{border-color:#2550b6; background:linear-gradient(180deg,#1843a6,#0f2e79)}
-  .btn.history{border-color:#a16207; background:linear-gradient(180deg,#b7791f,#92400e)}
-  /* History Modal */
-  .modal{display:none; position:fixed; inset:0; z-index:60; background:#070b16f0; backdrop-filter: blur(6px); padding:14px; overflow:auto}
-  .modal h3{margin:0 0 10px}
-  .chart{background:#0f1836; border:1px solid #243165; border-radius:12px; padding:10px; box-shadow:var(--glow); margin:10px 0}
-  .table{background:#0f1836; border:1px solid #243165; border-radius:12px; overflow:hidden}
-  .row{display:grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr; gap:8px; padding:10px; border-bottom:1px solid #1d2a57; font-size:.92rem}
-  .row.head{background:#101c44; font-weight:900}
-  .tag{display:inline-block; padding:.1rem .5rem; border-radius:8px; border:1px solid #244; background:#0a1330; color:#c8daff}
-  /* Small screens */
-  @media (max-width:480px){
-    .row{grid-template-columns: 70px 1fr 1fr 1fr 1fr 1fr}
-  }
+.stats{ display:flex; gap:10px; flex-wrap:wrap; }
+.chip{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; border:1px solid var(--border); background:linear-gradient(180deg,#0d1426e6,#0b0f1ae6); box-shadow:var(--shadow); font-size:14px; }
+.dot{ width:10px; height:10px; border-radius:50% }
+.dot-g{ background:var(--accent) }
+.dot-r{ background:var(--danger) }
+
+/* -------------------- QUESTION NAV (HORIZONTAL) -------------------- */
+.qnav-wrap{ position:sticky; top:64px; z-index:18; background:#0b0f1ad1; backdrop-filter: blur(10px); border-bottom:1px solid var(--border); padding:8px 8px; }
+.qnav{ display:flex; gap:8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; padding-bottom:6px; }
+.qnum{ flex:0 0 auto; width:38px; height:38px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-weight:800; letter-spacing:.3px; cursor:pointer; user-select:none; scroll-snap-align:center; color:#dbeafe; background:var(--chip); border:2px solid #233047; transition: transform .12s ease, background .15s ease, border-color .15s ease; }
+.qnum.current{ outline:2px solid var(--primary); outline-offset:2px; transform:scale(1.05) }
+.qnum.answered{ background:#0c2915; border-color:#14532d; color:#86efac }
+.qnum.unanswered{ background:#2a0e0e; border-color:#7f1d1d; color:#fca5a5 }
+
+/* -------------------- MAIN (Scrollable) -------------------- */
+.main{ flex:1; min-height:0; overflow:auto; padding:12px 12px calc(110px + env(safe-area-inset-bottom)) 12px; }
+.card{ background:linear-gradient(180deg,#0c1220f2,#0b0f1ae8); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); display:flex; flex-direction:column; min-height: min(680px, 65vh); }
+
+.qhead{ display:flex; gap:10px; align-items:flex-start; border-bottom:1px dashed #263244; padding:14px; }
+.badge{ font-weight:900; color:#93c5fd; background:#0b2544; border:1px solid #1e3a8a; padding:6px 10px; border-radius:10px; }
+.qtext{ margin:0; font-size: clamp(15px, 2.6vw, 17px); line-height:1.55; color:#e5e7eb; max-height:7.5lh; overflow:auto; padding-right:6px; }
+
+.qbody{ padding:12px 14px 16px 14px; display:flex; flex-direction:column; gap:10px; min-height:0; }
+.opt{ position:relative; border:2px solid #223047; padding:12px; border-radius:14px; background:#0b1526; display:flex; gap:10px; align-items:flex-start; cursor:pointer; overflow:hidden; transition: transform .1s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease; min-height: var(--touch); }
+.opt:hover{ transform:translateY(-1px) }
+.opt.selected{ background:linear-gradient(180deg,#052e1a,#0e2f20); border-color:#14532d; box-shadow:0 0 0 2px #14532d inset; }
+.tag{ min-width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#0b1426; border:1px solid #223046; color:#93c5fd; font-weight:800; margin-top:2px; }
+.opt-label{ flex:1; color:#dbeafe; }
+
+/* -------------------- BOTTOM NAV (Fixed + Safe Area) -------------------- */
+.bottom{ position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; gap:10px; padding:10px 10px calc(10px + env(safe-area-inset-bottom)) 10px; background:linear-gradient(180deg,#0b0f1ad9,#000000ef); border-top:1px solid var(--border); backdrop-filter: blur(10px); }
+.btn{ flex:1; min-height:var(--touch); border-radius:14px; border:2px solid #2b3546; color:#e5e7eb; background:linear-gradient(180deg,#0f172a,#0b1220); font-weight:900; letter-spacing:.3px; position:relative; overflow:hidden; cursor:pointer; transition: transform .1s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+.btn:hover{ transform:translateY(-1px); border-color:#64748b }
+.btn:active{ transform:translateY(0) scale(.98) }
+.btn.primary{ border-color:#2563eb; box-shadow:0 0 0 2px #1d4ed8 inset }
+.btn.success{ border-color:#16a34a; box-shadow:0 0 0 2px #14532d inset }
+
+/* Floating Admin */
+.fab{ position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); width:56px; height:56px; border-radius:16px; display:grid; place-items:center; border:2px solid #2b3546; background:linear-gradient(180deg,#0f172a,#0b1220); color:#93c5fd; box-shadow: var(--shadow); cursor:pointer; z-index:40; transition: transform .15s ease, border-color .2s ease; }
+.fab:hover{ transform:translateY(-2px); border-color:#60a5fa }
+
+/* Modal */
+.modal{ position:fixed; inset:0; display:none; place-items:center; z-index:50; background:linear-gradient(180deg,#0009,#000c); }
+.modal.active{ display:grid }
+.panel{ width:min(920px, 96vw); max-height:92vh; overflow:auto; border-radius:22px; background:linear-gradient(180deg,#0a0f1bcc,#0b1220); border:1px solid var(--border); box-shadow: var(--shadow); padding:18px; }
+.panel h2{ margin:0 0 10px 0 }
+.grid{ display:grid; gap:10px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (max-width:720px){ .grid{ grid-template-columns:1fr } }
+.input,.textarea{ width:100%; padding:12px 12px; border-radius:12px; color:#e5e7eb; background:#0b1220; border:1px solid #253041; outline:none; }
+.textarea{ min-height:160px; resize:vertical }
+.switch{ display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #253041; border-radius:12px; background:#0b1220; }
+.small{ font-size:12px; color:#9ca3af }
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+
+/* Dashboard */
+#dashboard{ display:none; }
+.cards{ display:grid; gap:12px; grid-template-columns: repeat(2, minmax(0,1fr)); margin:12px 12px calc(112px + env(safe-area-inset-bottom)) 12px; }
+@media(max-width:860px){ .cards{ grid-template-columns:1fr } }
+.card h3{ margin:0 0 10px 0 }
+.kpis{ display:grid; gap:10px; grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media(max-width:920px){ .kpis{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.kpi{ border:1px dashed #243041; border-radius:14px; padding:10px; text-align:center; background:#0b1220; }
+.kpi .v{ font-size:22px; font-weight:900 }
+.sep{ height:1px; background:#1f2937; margin:14px 0 }
+
+/* Answers */
+.answer{ border:1px solid #243041; border-radius:14px; padding:10px; margin-bottom:10px; background:#0b1220; }
+.answer .status{ font-weight:800 }
+.correct{ color:#22c55e } .wrong{ color:#ef4444 } .skipped{ color:#f59e0b }
+
+/* Ripple */
+.ripple{ position:absolute; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); animation:ripple .6s linear; background:#ffffff22; }
+@keyframes ripple{ from{ width:0; height:0; opacity:.8 } to{ width:420px; height:420px; opacity:0 } }
+.hidden{ display:none }
 </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="title">राजस्थान ग्रुप डी <small>Mock Test (25 प्रश्न)</small></div>
-      <div class="stats">
-        <div class="chip green"><span class="dot"></span> अटेंड: <span class="value" id="attended">0</span></div>
-        <div class="chip red"><span class="dot"></span> छोड़े: <span class="value" id="skipped">25</span></div>
-        <div class="chip cyan timer" id="timerChip"><span class="dot"></span> टाइमर: <span class="value" id="timer">30:00</span></div>
+<div class="app" id="app">
+  <!-- Header -->
+  <header>
+    <div class="header-row">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <h1 class="title" id="testName">Sample Test</h1>
       </div>
-    </header>
-
-    <div class="q-nav" id="qNav"></div>
-
-    <div class="card">
-      <div class="q-text" id="qText">लोड हो रहा है…</div>
-      <div id="opts"></div>
+      <div class="row">
+        <div id="timer" class="timer">00:00</div>
+        <div class="stats">
+          <div class="chip"><span class="dot dot-g"></span> Attended: <span id="attendedCount">0</span> (<span id="attendedMarks">0</span>)</div>
+          <div class="chip"><span class="dot dot-r"></span> Unattended: <span id="unattendedCount">0</span> (<span id="unattendedMarks">0</span>)</div>
+        </div>
+      </div>
     </div>
+    <div class="qnav-wrap"><div id="qnav" class="qnav"></div></div>
+  </header>
+
+  <!-- Main (scrollable) -->
+  <main class="main">
+    <section class="card" id="testPage">
+      <div class="qhead">
+        <div class="badge" id="qIndex">Q1</div>
+        <p class="qtext" id="qText">Loading…</p>
+      </div>
+      <div class="qbody" id="options"></div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard">
+      <div class="cards">
+        <div class="card">
+          <h3>Score Summary</h3>
+          <div class="kpis">
+            <div class="kpi"><div class="small">Score</div><div class="v" id="kScore">0</div></div>
+            <div class="kpi"><div class="small">Attended</div><div class="v" id="kAttended">0</div></div>
+            <div class="kpi"><div class="small correct">Correct</div><div class="v" id="kCorrect">0</div></div>
+            <div class="kpi"><div class="small wrong">Wrong</div><div class="v" id="kWrong">0</div></div>
+          </div>
+          <div class="sep"></div>
+          <canvas id="scoreChart" height="210"></canvas>
+        </div>
+        <div class="card">
+          <h3>Performance History</h3>
+          <div class="small">हर टेस्ट के बाद ऑटो-रिकॉर्ड</div>
+          <canvas id="historyChart" height="220"></canvas>
+        </div>
+        <div class="card" style="grid-column: 1/-1;">
+          <h3>Detailed Answers</h3>
+          <div id="answersList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Fixed Nav -->
+  <div class="bottom">
+    <button id="prevBtn" class="btn" data-ripple>⟵ Previous</button>
+    <button id="nextBtn" class="btn" data-ripple>Next ⟶</button>
+    <button id="submitBtn" class="btn success" data-ripple>✅ Submit Test</button>
   </div>
 
-  <!-- Bottom Dock -->
-  <div class="dock">
-    <button class="btn prev" id="prevBtn">◀ पिछला</button>
-    <button class="btn next" id="nextBtn">अगला ▶</button>
-    <button class="btn submit" id="submitBtn">✅ सबमिट टेस्ट</button>
+  <!-- Admin FAB -->
+  <button class="fab" id="openAdmin" title="Admin Panel (Ctrl+Shift+A)" data-ripple>⚙️</button>
+
+  <!-- Admin Modal -->
+  <div class="modal" id="adminModal" aria-hidden="true">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between;">
+        <h2>Admin Panel</h2>
+        <div class="row">
+          <button class="btn small" id="closeAdmin" data-ripple>Close</button>
+          <button class="btn primary small" id="saveAdmin" data-ripple>💾 Save & Apply</button>
+        </div>
+      </div>
+      <div class="small">सेटिंग्स localStorage में सेव होंगी और तुरंत लागू होंगी।</div>
+      <div class="sep"></div>
+
+      <div class="grid">
+        <div>
+          <label class="small">Test Name</label>
+          <input id="aName" class="input" placeholder="e.g. Rajasthan GK Mock 01" />
+        </div>
+        <div>
+          <label class="small">Timer (minutes)</label>
+          <input id="aMinutes" type="number" min="1" class="input" />
+        </div>
+        <div>
+          <label class="small">Total Questions</label>
+          <input id="aCount" type="number" min="1" class="input" />
+        </div>
+        <div>
+          <label class="small">Positive Mark (per correct)</label>
+          <input id="aPositive" type="number" step="0.25" min="0" class="input" />
+        </div>
+        <div>
+          <label class="small">Negative Marking (per wrong)</label>
+          <input id="aNegative" type="number" step="0.25" min="0" class="input" />
+        </div>
+        <div>
+          <label class="small">Red Alert (last N minutes)</label>
+          <input id="aAlertMin" type="number" min="1" class="input" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <label class="switch"><input id="aAutoSubmit" type="checkbox" /> <span>⏱️ Time-out पर Auto Submit</span></label>
+        <label class="switch"><input id="aResume" type="checkbox" /> <span>🔁 Reload पर Auto Resume</span></label>
+      </div>
+
+      <div class="sep"></div>
+      <h3>Questions (JSON)</h3>
+      <div class="small">Format: <code>[{"id":1,"text":"…?","options":["A","B","C","D"],"correct":0}]</code></div>
+      <textarea id="aJSON" class="textarea" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <input id="aFile" type="file" accept="application/json" class="input" />
+        <button class="btn" id="btnImport" data-ripple>📥 Import JSON</button>
+        <button class="btn" id="btnExport" data-ripple>📤 Export JSON</button>
+        <button class="btn primary" id="btnGenerate" data-ripple>⚡ Auto-Generate Sample</button>
+      </div>
+    </div>
   </div>
-
-  <!-- Dashboard -->
-  <div class="dash" id="dash">
-    <h2>📊 आपका टेस्ट परिणाम</h2>
-    <div class="kpis">
-      <div class="kpi total">कुल प्रश्न<span id="kpiTotal">25</span></div>
-      <div class="kpi att">अटेंड<span id="kpiAtt">0</span></div>
-      <div class="kpi skp">स्किप<span id="kpiSkp">0</span></div>
-      <div class="kpi cor">सही<span id="kpiCor">0</span></div>
-      <div class="kpi wrg">गलत<span id="kpiWrg">0</span></div>
-      <div class="kpi acc">Accuracy<span id="kpiAcc">0%</span></div>
-      <div class="kpi scr">Score<span id="kpiScr">0</span></div>
-      <div class="kpi tim">समय (मि:से)<span id="kpiTime">0:00</span></div>
-    </div>
-
-    <div class="section">
-      <h3>🧾 विस्तृत उत्तर</h3>
-      <div id="detail"></div>
-    </div>
-
-    <div class="actions">
-      <button class="btn action refresh" onclick="location.reload()">🔄 नया टेस्ट</button>
-      <button class="btn action history" onclick="openHistory()">📜 टेस्ट हिस्ट्री</button>
-    </div>
-  </div>
-
-  <!-- History Modal -->
-  <div class="modal" id="history">
-    <h3>📜 टेस्ट हिस्ट्री (Attempts)</h3>
-    <div class="chart">
-      <canvas id="lineChart" width="800" height="260"></canvas>
-    </div>
-    <div class="chart">
-      <canvas id="barChart" width="800" height="260"></canvas>
-    </div>
-    <div class="table" id="histTable"></div>
-    <div class="actions" style="margin-top:12px">
-      <button class="btn action refresh" onclick="document.getElementById('history').style.display='none'">बंद करें</button>
-      <button class="btn action history" onclick="clearHistory()">🧹 हिस्ट्री साफ़ करें</button>
-    </div>
-  </div>
+</div>
 
 <script>
-(() => {
-  // ====== DATA: 25 Fixed Questions (as requested) ======
-  const questions = [
-    {id:1,text:"राजस्थान की राजधानी क्या है?",options:["जयपुर","जोधपुर","उदयपुर","बीकानेर"],correctAnswer:0},
-    {id:2,text:"थार मरुस्थल किस राज्य में स्थित है?",options:["गुजरात","राजस्थान","मध्य प्रदेश","हरियाणा"],correctAnswer:1},
-    {id:3,text:"राजस्थान का राज्य पक्षी कौन सा है?",options:["मोर","गोडावण","तोता","कबूतर"],correctAnswer:1},
-    {id:4,text:"राजस्थान का राज्य पशु कौन सा है?",options:["बाघ","चिंकारा","ऊंट","हिरण"],correctAnswer:2},
-    {id:5,text:"राजस्थान का सबसे बड़ा जिला कौन सा है?",options:["जैसलमेर","बीकानेर","जोधपुर","उदयपुर"],correctAnswer:0},
-    {id:6,text:"राजस्थान की स्थापना कब हुई थी?",options:["15 अगस्त 1947","26 जनवरी 1950","30 मार्च 1949","1 नवंबर 1956"],correctAnswer:2},
-    {id:7,text:"राजस्थान का क्षेत्रफल भारत के कुल क्षेत्रफल का कितना प्रतिशत है?",options:["5.8%","8.4%","10.2%","12.5%"],correctAnswer:2},
-    {id:8,text:"राजस्थान में कुल कितने जिले हैं?",options:["30","33","50","25"],correctAnswer:1},
-    {id:9,text:"राजस्थान की राजभाषा क्या है?",options:["हिंदी","राजस्थानी","मारवाड़ी","अंग्रेजी"],correctAnswer:0},
-    {id:10,text:"राजस्थान का सबसे ऊँचा पर्वत शिखर कौन सा है?",options:["आबू पर्वत","सरिस्का पर्वत","गुरु शिखर","तारागढ़"],correctAnswer:2},
-    {id:11,text:"राजस्थान में सबसे अधिक वर्षा वाला जिला कौन सा है?",options:["जयपुर","उदयपुर","झालावाड़","कोटा"],correctAnswer:2},
-    {id:12,text:"राजस्थान का सबसे लंबा नहर कौन सा है?",options:["इंदिरा गांधी नहर","गंग नहर","भाखड़ा नहर","चंबल नहर"],correctAnswer:0},
-    {id:13,text:"राजस्थान में सबसे बड़ी मीठे पानी की झील कौन सी है?",options:["जयसमंद झील","पिछोला झील","फतेहसागर झील","आनासागर झील"],correctAnswer:0},
-    {id:14,text:"राजस्थान में कुल कितने लोकसभा सदस्य हैं?",options:["20","25","30","35"],correctAnswer:1},
-    {id:15,text:"राजस्थान में कुल कितने राज्यसभा सदस्य हैं?",options:["8","10","12","15"],correctAnswer:1},
-    {id:16,text:"राजस्थान का प्रथम मुख्यमंत्री कौन था?",options:["जयनारायण व्यास","मोहनलाल सुखाड़िया","हीरालाल शास्त्री","बरकतुल्लाह खान"],correctAnswer:2},
-    {id:17,text:"राजस्थान का राज्य नृत्य कौन सा है?",options:["कठपुतली","घूमर","कालबेलिया","गैर"],correctAnswer:1},
-    {id:18,text:"राजस्थान का सबसे बड़ा बांध कौन सा है?",options:["माही बजाज सागर बांध","जवाई बांध","बीसलपुर बांध","राणा प्रताप सागर बांध"],correctAnswer:3},
-    {id:19,text:"राजस्थान में सबसे अधिक जनसंख्या वाला जिला कौन सा है?",options:["जयपुर","जोधपुर","कोटा","अजमेर"],correctAnswer:0},
-    {id:20,text:"राजस्थान में सबसे कम जनसंख्या वाला जिला कौन सा है?",options:["जैसलमेर","बाड़मेर","सिरोही","प्रतापगढ़"],correctAnswer:0},
-    {id:21,text:"राजस्थान का सबसे बड़ा रेगिस्तान कौन सा है?",options:["थार","गोबी","सहारा","कालाहारी"],correctAnswer:0},
-    {id:22,text:"राजस्थान में सबसे बड़ा वन्यजीव अभयारण्य कौन सा है?",options:["रणथंभौर","सरिस्का","केवलादेव","देशराष्ट्रीय उद्यान"],correctAnswer:3},
-    {id:23,text:"राजस्थान का सबसे बड़ा रेलवे जंक्शन कौन सा है?",options:["जयपुर","जोधपुर","अजमेर","भरतपुर"],correctAnswer:1},
-    {id:24,text:"राजस्थान का सबसे बड़ा हवाई अड्डा कौन सा है?",options:["जयपुर","जोधपुर","उदयपुर","कोटा"],correctAnswer:0},
-    {id:25,text:"राजस्थान में सबसे अधिक साक्षरता वाला जिला कौन सा है?",options:["जयपुर","कोटा","अजमेर","उदयपुर"],correctAnswer:1}
-  ];
+/* ---- Mobile dvh fix (stable viewport height) ---- */
+function setDVH(){ document.documentElement.style.setProperty('--dvh', window.innerHeight + 'px'); }
+setDVH(); window.addEventListener('resize', setDVH);
 
-  // ====== STATE ======
-  let idx = 0;
-  const answers = new Array(questions.length).fill(null);
-  let attended = 0;
-  let skipped  = questions.length;
-  let timeLeft = 30 * 60; // seconds
-  let timerId;
+/* ---------- Storage Keys ---------- */
+const KEY_SETTINGS = 'bt2_settings_v1';
+const KEY_QUESTIONS = 'bt2_questions_v1';
+const KEY_PROGRESS  = 'bt2_progress_v1';
+const KEY_HISTORY   = 'bt2_history_v1';
 
-  // ====== DOM ======
-  const qNav   = document.getElementById('qNav');
-  const qText  = document.getElementById('qText');
-  const opts   = document.getElementById('opts');
-  const attEl  = document.getElementById('attended');
-  const skpEl  = document.getElementById('skipped');
-  const timEl  = document.getElementById('timer');
-  const timerChip = document.getElementById('timerChip');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const submitBtn = document.getElementById('submitBtn');
-  const dash = document.getElementById('dash');
+/* ---------- Defaults ---------- */
+const defaults = { name:'Sample Test', minutes:30, count:10, positive:1, negative:0.25, alertMinutes:5, autoSubmit:true, autoResume:true };
 
-  // ====== RENDER ======
-  function renderNav(){
-    qNav.innerHTML = '';
-    questions.forEach((q,i)=>{
-      const b = document.createElement('button');
-      b.className = 'q-badge';
-      if(i===idx) b.classList.add('current');
-      if(answers[i]!==null) b.classList.add('attended'); else b.classList.add('skipped');
-      b.textContent = i+1;
-      b.onclick = ()=>{ idx=i; renderQ(); };
-      qNav.appendChild(b);
-    });
-  }
+/* ---------- State ---------- */
+let settings = loadSettings();
+let questions = loadQuestions() || generateSample(settings.count);
+let answers = new Array(questions.length).fill(-1);
+let current = 0; let timeLeft = settings.minutes*60; let tRef=null; let charts={score:null,history:null};
+let history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
 
-  function renderQ(){
-    renderNav();
-    const q = questions[idx];
-    qText.textContent = `${idx+1}. ${q.text}`;
-    opts.innerHTML = '';
-    q.options.forEach((op, oi)=>{
-      const el = document.createElement('div');
-      el.className = 'opt' + (answers[idx]===oi?' selected':'');
-      el.textContent = op;
-      el.onclick = ()=>{ answers[idx]=oi; recalc(); renderQ(); };
-      opts.appendChild(el);
-    });
-    prevBtn.disabled = idx===0;
-    nextBtn.disabled = idx===questions.length-1;
-  }
+/* ---------- Utils ---------- */
+function $(id){ return document.getElementById(id); }
+function saveSettings(){ localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings)); }
+function loadSettings(){ try{ return {...defaults, ...(JSON.parse(localStorage.getItem(KEY_SETTINGS)||'{}'))}; }catch{ return {...defaults}; } }
+function saveQuestions(){ localStorage.setItem(KEY_QUESTIONS, JSON.stringify(questions)); }
+function loadQuestions(){ try{ const q=JSON.parse(localStorage.getItem(KEY_QUESTIONS)||'null'); return Array.isArray(q)&&q.length?q:null; }catch{ return null; } }
+function saveProgress(){ localStorage.setItem(KEY_PROGRESS, JSON.stringify({answers,current,timeLeft,hash:hashS(settings)})); }
+function loadProgress(){ try{ const p=JSON.parse(localStorage.getItem(KEY_PROGRESS)||'null'); return p&&p.hash===hashS(settings)?p:null; }catch{ return null; } }
+function clearProgress(){ localStorage.removeItem(KEY_PROGRESS); }
+function hashS(s){ return [s.name,s.minutes,s.count,s.positive,s.negative,s.alertMinutes,s.autoSubmit?1:0].join('|'); }
+function clamp(v,min,max){ return Math.min(max, Math.max(min, v)); }
+function fmt(n){ return (Math.round(n*100)/100).toString(); }
 
-  function recalc(){
-    attended = answers.filter(a=>a!==null).length;
-    skipped  = questions.length - attended;
-    attEl.textContent = attended;
-    skpEl.textContent = skipped;
-  }
+function generateSample(n=10){ const out=[]; for(let i=1;i<=n;i++){ out.push({ id:i, text:`Question ${i}: यह एक डेमो प्रश्न है?`, options:[`Option A of Q${i}`,`Option B of Q${i}`,`Option C of Q${i}`,`Option D of Q${i}`], correct:0 }); } return out; }
 
-  function startTimer(){
-    clearInterval(timerId);
-    timerId = setInterval(()=>{
-      timeLeft--;
-      if(timeLeft<=0){ clearInterval(timerId); submit(); return; }
-      const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
-      const s = String(timeLeft%60).padStart(2,'0');
-      timEl.textContent = `${m}:${s}`;
-      if(timeLeft<=300) timerChip.classList.add('warning');
-    },1000);
-  }
+/* ---------- Ripple for buttons ---------- */
+function attachRipple(root=document){ root.querySelectorAll('[data-ripple]').forEach(el=>{ el.addEventListener('click', e=>{ const r=document.createElement('span'); r.className='ripple'; const rect=el.getBoundingClientRect(); r.style.left=(e.clientX-rect.left)+'px'; r.style.top=(e.clientY-rect.top)+'px'; el.appendChild(r); setTimeout(()=>r.remove(),600); }); }); }
+attachRipple();
 
-  // ====== CONTROLS ======
-  prevBtn.onclick = ()=>{ if(idx>0){ idx--; renderQ(); } };
-  nextBtn.onclick = ()=>{ if(idx<questions.length-1){ idx++; renderQ(); } };
-  submitBtn.onclick = ()=>{ if(confirm('क्या आप वाकई टेस्ट सबमिट करना चाहते हैं?')) submit(); };
+/* ---------- Render ---------- */
+function renderHeader(){ $('testName').textContent=settings.name; }
+function renderTimer(){ const m=String(Math.floor(timeLeft/60)).padStart(2,'0'); const s=String(timeLeft%60).padStart(2,'0'); const el=$('timer'); el.textContent=`${m}:${s}`; el.classList.toggle('warn', timeLeft>0 && timeLeft<=settings.alertMinutes*60); }
+function renderNav(){ const box=$('qnav'); box.innerHTML=''; questions.forEach((q,i)=>{ const b=document.createElement('button'); b.className='qnum ' + (answers[i]===-1?'unanswered':'answered') + (i===current?' current':''); b.textContent=q.id; b.onclick=()=>{ current=i; renderQuestion(); renderNav(); saveProgress(); }; box.appendChild(b); }); }
+function renderStatus(){ const attended=answers.filter(a=>a!==-1).length; const unattended=questions.length-attended; $('attendedCount').textContent=attended; $('unattendedCount').textContent=unattended; $('attendedMarks').textContent=fmt(attended*settings.positive).replace(/\.00$/,''); $('unattendedMarks').textContent='0'; }
+function renderQuestion(){ const q=questions[current]; $('qIndex').textContent=`Q${q.id}`; $('qText').textContent=q.text; const box=$('options'); box.innerHTML=''; q.options.forEach((opt,idx)=>{ const row=document.createElement('div'); row.className='opt'+(answers[current]===idx?' selected':''); row.setAttribute('data-ripple',''); row.innerHTML=`<div class="tag">${String.fromCharCode(65+idx)}</div><div class="opt-label">${opt}</div>`; row.onclick=(e)=>{ answers[current]=idx; renderNav(); renderStatus(); renderQuestion(); saveProgress(); }; box.appendChild(row); }); attachRipple(box); }
 
-  // ====== SCORING & DASH ======
-  function submit(){
-    clearInterval(timerId);
-    // Count
-    let correct=0, wrong=0;
-    answers.forEach((a,i)=>{
-      if(a===null) return;
-      if(a===questions[i].correctAnswer) correct++; else wrong++;
-    });
-    const score = correct*4 - wrong*1;
-    const acc   = Math.round((correct/Math.max(1,(correct+wrong)))*100);
-    const used  = (30*60)-timeLeft;
-    const usedStr = `${Math.floor(used/60)}:${String(used%60).padStart(2,'0')}`;
+/* ---------- Timer ---------- */
+function startTimer(){ if(tRef) clearInterval(tRef); renderTimer(); tRef=setInterval(()=>{ timeLeft=Math.max(0,timeLeft-1); renderTimer(); saveProgress(); if(timeLeft===0){ clearInterval(tRef); if(settings.autoSubmit) submitTest(); } },1000); }
 
-    // KPIs
-    setText('kpiTotal', questions.length);
-    setText('kpiAtt', attended);
-    setText('kpiSkp', skipped);
-    setText('kpiCor', correct);
-    setText('kpiWrg', wrong);
-    setText('kpiAcc', acc + '%');
-    setText('kpiScr', score);
-    setText('kpiTime', usedStr);
+/* ---------- Navigation ---------- */
+$('prevBtn').onclick=()=>{ current=clamp(current-1,0,questions.length-1); renderQuestion(); renderNav(); saveProgress(); };
+$('nextBtn').onclick=()=>{ current=clamp(current+1,0,questions.length-1); renderQuestion(); renderNav(); saveProgress(); };
+$('submitBtn').onclick=()=> submitTest();
 
-    // Details
-    const detail = document.getElementById('detail');
-    detail.innerHTML = '';
-    questions.forEach((q,i)=>{
-      const box = document.createElement('div');
-      box.className = 'result-item';
-      const ua = answers[i];
-      const isCorrect = ua!==null && ua===q.correctAnswer;
-      box.innerHTML = `
-        <div style="font-weight:800;margin-bottom:6px">${i+1}. ${q.text}</div>
-        <div class="${ua===null?'incorrect':(isCorrect?'correct':'incorrect')}">
-          आपका उत्तर: ${ua===null?'<span class="tag">नहीं दिया</span>':q.options[ua]}
-        </div>
-        <div class="correct">सही उत्तर: ${q.options[q.correctAnswer]}</div>
-      `;
-      detail.appendChild(box);
-    });
+/* ---------- Submit / Dashboard ---------- */
+function submitTest(){ clearInterval(tRef);
+  let correct=0, wrong=0, skipped=0;
+  questions.forEach((q,i)=>{ const a=answers[i]; if(a===-1) skipped++; else if(a===q.correct) correct++; else wrong++; });
+  const score = correct*settings.positive - wrong*settings.negative;
+  $('kScore').textContent=fmt(score); $('kAttended').textContent = correct+wrong; $('kCorrect').textContent=correct; $('kWrong').textContent=wrong;
 
-    // Save history
-    const rec = {
-      date: new Date().toLocaleString(),
-      total: questions.length, attended, skipped,
-      correct, wrong, score, accuracy: acc, time: usedStr
-    };
-    const key = 'testHistoryRGD';
-    const hist = JSON.parse(localStorage.getItem(key) || '[]');
-    hist.push(rec);
-    localStorage.setItem(key, JSON.stringify(hist));
+  if(charts.score) charts.score.destroy();
+  charts.score=new Chart($('scoreChart'),{ type:'doughnut', data:{ labels:['Correct','Wrong','Skipped'], datasets:[{ data:[correct,wrong,skipped] }] }, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#e5e7eb' } } } } });
 
-    dash.style.display='block';
-  }
+  const rec={ date:new Date().toLocaleString(), score, correct, wrong, skipped, total:questions.length, positive:settings.positive, negative:settings.negative };
+  history.push(rec); localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
 
-  function setText(id, val){ document.getElementById(id).textContent = val; }
+  if(charts.history) charts.history.destroy();
+  charts.history=new Chart($('historyChart'),{ type:'line', data:{ labels:history.map(h=>h.date), datasets:[{ label:'Score', data:history.map(h=>h.score), tension:.35 }] }, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#e5e7eb' } } }, scales:{ x:{ ticks:{ color:'#9ca3af' }, grid:{ color:'#1f2937' } }, y:{ ticks:{ color:'#9ca3af' }, grid:{ color:'#1f2937' } } } } });
 
-  // ====== HISTORY ======
-  function openHistory(){
-    const modal = document.getElementById('history');
-    modal.style.display='block';
-    const key = 'testHistoryRGD';
-    const hist = JSON.parse(localStorage.getItem(key)||'[]');
+  const list=$('answersList'); list.innerHTML='';
+  questions.forEach((q,i)=>{ const a=answers[i]; const status=(a===-1)?'Skipped':(a===q.correct?'Correct':'Wrong'); const cls=(a===-1)?'skipped':(a===q.correct?'correct':'wrong'); const div=document.createElement('div'); div.className='answer'; div.innerHTML=`<div class="status ${cls}">Q${q.id}: <span>${status}</span></div><div class="small" style="margin:6px 0 10px 0">${q.text}</div><div>✅ Correct Answer: <strong>${q.options[q.correct]}</strong></div><div>🧑‍💻 Your Answer: <strong>${a>-1?q.options[a]:'Skipped'}</strong></div>`; list.appendChild(div); });
 
-    // Table
-    const tbl = document.getElementById('histTable');
-    tbl.innerHTML = '';
-    const head = rowEl(['Attempt','#Score','Accuracy','Correct','Wrong','Skipped'], true);
-    tbl.appendChild(head);
-    hist.forEach((h,i)=>{
-      const r = rowEl([String(i+1)+' ['+h.date.split(',')[0]+']', String(h.score), h.accuracy+'%', String(h.correct), String(h.wrong), String(h.skipped)]);
-      tbl.appendChild(r);
-    });
+  $('testPage').style.display='none'; $('dashboard').style.display='block'; clearProgress();
+}
 
-    // Charts
-    drawLineChart(hist);
-    drawBarChart(hist);
-  }
+/* ---------- Admin Panel ---------- */
+const adminModal=$('adminModal');
+$('openAdmin').onclick=()=> openAdmin(); $('closeAdmin').onclick=()=> closeAdmin();
+document.addEventListener('keydown',e=>{ if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a') openAdmin(); if(e.key==='Escape' && adminModal.classList.contains('active')) closeAdmin(); });
+function openAdmin(){ fillAdmin(); adminModal.classList.add('active'); adminModal.setAttribute('aria-hidden','false'); }
+function closeAdmin(){ adminModal.classList.remove('active'); adminModal.setAttribute('aria-hidden','true'); }
+function fillAdmin(){ $('aName').value=settings.name; $('aMinutes').value=settings.minutes; $('aCount').value=settings.count; $('aPositive').value=settings.positive; $('aNegative').value=settings.negative; $('aAlertMin').value=settings.alertMinutes; $('aAutoSubmit').checked=settings.autoSubmit; $('aResume').checked=settings.autoResume; $('aJSON').value=JSON.stringify(questions,null,2); }
 
-  function rowEl(values, header=false){
-    const r = document.createElement('div'); r.className = 'row'+(header?' head':'');
-    values.forEach(v=>{ const c=document.createElement('div'); c.textContent = v; r.appendChild(c); });
-    return r;
-  }
+$('saveAdmin').onclick=()=>{
+  settings.name=$('aName').value.trim()||defaults.name;
+  settings.minutes=Math.max(1, parseInt($('aMinutes').value||defaults.minutes));
+  settings.count=Math.max(1, parseInt($('aCount').value||defaults.count));
+  settings.positive=Math.max(0, parseFloat($('aPositive').value||defaults.positive));
+  settings.negative=Math.max(0, parseFloat($('aNegative').value||defaults.negative));
+  settings.alertMinutes=Math.max(1, parseInt($('aAlertMin').value||defaults.alertMinutes));
+  settings.autoSubmit=$('aAutoSubmit').checked; settings.autoResume=$('aResume').checked; saveSettings();
 
-  function clearHistory(){
-    if(confirm('हिस्ट्री डिलीट करें?')){ localStorage.removeItem('testHistoryRGD'); openHistory(); }
-  }
+  try{ const data=JSON.parse($('aJSON').value||'[]'); if(!Array.isArray(data)||!data.length) throw 0; questions=data.slice(0,settings.count).map((q,i)=>({ id:q.id??(i+1), text:String(q.text??`Q${i+1}?`), options:(Array.isArray(q.options)&&q.options.length===4?q.options.map(String):['A','B','C','D']), correct:Number.isInteger(q.correct)?q.correct:0 })); }
+  catch{ questions=generateSample(settings.count); }
+  saveQuestions();
 
-  // Canvas utilities
-  function drawAxis(ctx, x, y, w, h){
-    ctx.strokeStyle = '#3851a8';
-    ctx.lineWidth=1;
-    ctx.beginPath(); // X
-    ctx.moveTo(x, y+h); ctx.lineTo(x+w, y+h);
-    ctx.stroke();
-    ctx.beginPath(); // Y
-    ctx.moveTo(x, y); ctx.lineTo(x, y+h);
-    ctx.stroke();
-  }
+  current=0; answers=new Array(questions.length).fill(-1); timeLeft=settings.minutes*60; clearProgress();
+  $('dashboard').style.display='none'; $('testPage').style.display='flex';
+  renderHeader(); renderNav(); renderStatus(); renderQuestion(); renderTimer(); startTimer(); closeAdmin();
+};
 
-  function drawLineChart(hist){
-    const cv = document.getElementById('lineChart');
-    const ctx = cv.getContext('2d');
-    ctx.clearRect(0,0,cv.width,cv.height);
+$('btnImport').onclick=()=>{ const f=$('aFile').files?.[0]; if(!f){ alert('Select a JSON file first.'); return; } const reader=new FileReader(); reader.onload=()=>{ $('aJSON').value=reader.result; }; reader.readAsText(f); };
+$('btnExport').onclick=()=>{ const blob=new Blob([$('aJSON').value],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${settings.name.replace(/\s+/g,'_')}_questions.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); };
+$('btnGenerate').onclick=()=>{ const sample=generateSample(Math.max(1, parseInt($('aCount').value||settings.count))); $('aJSON').value=JSON.stringify(sample,null,2); };
 
-    const P = {l:42, r:12, t:14, b:26};
-    const W = cv.width - P.l - P.r;
-    const H = cv.height - P.t - P.b;
+/* ---------- Init ---------- */
+function init(){
+  renderHeader();
+  let p = settings.autoResume ? loadProgress() : null;
+  if(p){ answers=Array.isArray(p.answers)?p.answers:answers; current=clamp(p.current??0,0,questions.length-1); timeLeft=Math.max(1, p.timeLeft??(settings.minutes*60)); }
+  else{ answers=new Array(questions.length).fill(-1); current=0; timeLeft=settings.minutes*60; }
 
-    drawAxis(ctx, P.l, P.t, W, H);
+  renderNav(); renderStatus(); renderQuestion(); renderTimer(); startTimer(); attachRipple();
+}
+init();
 
-    // Labels
-    ctx.fillStyle='#9fb4ff'; ctx.font='12px system-ui';
-    ctx.fillText('Score', 6, P.t+10);
-    ctx.fillText('Attempts →', P.l+W-90, P.t+H+20);
-
-    if(hist.length===0){
-      ctx.fillText('No history', P.l+10, P.t+20);
-      return;
-    }
-
-    // Scale (score can be negative). Estimate min/max
-    const vals = hist.map(h=>h.score);
-    const vmin = Math.min(0, Math.min(...vals));
-    const vmax = Math.max(questions.length*4, Math.max(...vals));
-    const xStep = hist.length>1 ? W/(hist.length-1) : 0;
-
-    // Grid
-    ctx.strokeStyle='rgba(88,123,255,.18)';
-    ctx.lineWidth=1;
-    ctx.setLineDash([4,4]);
-    for(let gy=0; gy<=4; gy++){
-      const y = P.t + H - (gy/4)*H;
-      ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(P.l+W, y); ctx.stroke();
-      const val = Math.round(vmin + (gy/4)*(vmax-vmin));
-      ctx.fillStyle='#88a2ff'; ctx.fillText(val, 8, y+4);
-    }
-    ctx.setLineDash([]);
-
-    // Line
-    ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2;
-    ctx.beginPath();
-    hist.forEach((h,i)=>{
-      const x = P.l + (xStep*i);
-      const y = P.t + H - ((h.score - vmin)/(vmax-vmin||1))*H;
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-
-    // Points + tooltip value on tap
-    hist.forEach((h,i)=>{
-      const x = P.l + (xStep*i);
-      const y = P.t + H - ((h.score - vmin)/(vmax-vmin||1))*H;
-      ctx.fillStyle='#22d3ee';
-      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
-    });
-
-    // Simple tap tooltip
-    cv.onclick = (e)=>{
-      const rect = cv.getBoundingClientRect();
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      // find nearest point
-      let best=-1, bd=1e9;
-      hist.forEach((h,i)=>{
-        const x = P.l + (xStep*i);
-        const y = P.t + H - ((h.score - vmin)/(vmax-vmin||1))*H;
-        const d = Math.hypot(mx-x,my-y);
-        if(d<bd){ bd=d; best=i; }
-      });
-      if(bd<14){
-        const h = hist[best];
-        // draw bubble
-        ctx.clearRect(0,0,cv.width,30); // top band
-        ctx.fillStyle='#0f1836';
-        ctx.fillRect(0,0,cv.width,30);
-        ctx.fillStyle='#a7c1ff';
-        ctx.font='12px system-ui';
-        ctx.fillText(`Attempt ${best+1} | Score: ${h.score}`, 12, 20);
-      }
-    };
-  }
-
-  function drawBarChart(hist){
-    const cv = document.getElementById('barChart');
-    const ctx = cv.getContext('2d');
-    ctx.clearRect(0,0,cv.width,cv.height);
-
-    const P = {l:42, r:12, t:14, b:26};
-    const W = cv.width - P.l - P.r;
-    const H = cv.height - P.t - P.b;
-
-    drawAxis(ctx, P.l, P.t, W, H);
-
-    ctx.fillStyle='#9fb4ff'; ctx.font='12px system-ui';
-    ctx.fillText('Accuracy %', 6, P.t+10);
-    ctx.fillText('Attempts →', P.l+W-90, P.t+H+20);
-
-    if(hist.length===0){ ctx.fillText('No history', P.l+10, P.t+20); return; }
-
-    // Bars
-    const n = hist.length;
-    const barW = Math.max(14, Math.min(28, W/(n*1.6)));
-    const gap = (W - n*barW) / Math.max(1,(n-1));
-
-    // grid
-    ctx.strokeStyle='rgba(88,123,255,.18)'; ctx.setLineDash([4,4]);
-    for(let gy=0; gy<=5; gy++){
-      const y = P.t + H - (gy/5)*H;
-      ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(P.l+W,y); ctx.stroke();
-      ctx.fillStyle='#88a2ff'; ctx.fillText((gy*20), 8, y+4);
-    }
-    ctx.setLineDash([]);
-
-    hist.forEach((h,i)=>{
-      const x = P.l + i*(barW+gap);
-      const hgt = (h.accuracy/100)*H;
-      // gradient bar
-      const g = ctx.createLinearGradient(0,P.t+H-hgt,0,P.t+H);
-      g.addColorStop(0,'#f59e0b'); g.addColorStop(1,'#a16207');
-      ctx.fillStyle = g;
-      ctx.fillRect(x, P.t + H - hgt, barW, hgt);
-      // value label
-      ctx.fillStyle='#dbe7ff';
-      ctx.fillText(String(h.accuracy)+'%', x, P.t + H - hgt - 4);
-    });
-
-    // simple tooltip on tap
-    cv.onclick = (e)=>{
-      const rect = cv.getBoundingClientRect();
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      // locate which bar
-      for(let i=0;i<hist.length;i++){
-        const x = P.l + i*(barW+gap);
-        const hgt = (hist[i].accuracy/100)*H;
-        const bx = x, by = P.t + H - hgt, bw = barW, bh = hgt;
-        if(mx>=bx && mx<=bx+bw && my>=by && my<=by+bh){
-          ctx.clearRect(0,0,cv.width,30);
-          ctx.fillStyle='#0f1836'; ctx.fillRect(0,0,cv.width,30);
-          ctx.fillStyle='#a7c1ff'; ctx.font='12px system-ui';
-          ctx.fillText(`Attempt ${i+1} | Accuracy: ${hist[i].accuracy}%`, 12, 20);
-          break;
-        }
-      }
-    };
-  }
-
-  // Expose for buttons
-  window.openHistory = openHistory;
-  window.clearHistory = clearHistory;
-
-  // ====== INIT ======
-  renderQ(); recalc(); startTimer();
-
-  // Disable pinch zoom / double-tap zoom
-  document.addEventListener('touchstart', e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
-  document.addEventListener('gesturestart', e=>e.preventDefault());
-})();
+/* Prevent pinch-zoom causing layout jumps while keeping accessibility */
+let lastTouchEnd=0; document.addEventListener('touchend', e=>{ const now=Date.now(); if(now-lastTouchEnd<=300){ e.preventDefault(); } lastTouchEnd=now; },{passive:false});
 </script>
 </body>
 </html>
