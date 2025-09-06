@@ -1,432 +1,973 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Free Job Test — 2050 Theme</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg1:#071028; --bg2:#0b1630; --card:#0f1724; --accent: #8fd3ff; --glass: rgba(255,255,255,0.04);
-      --btn-border: rgba(255,255,255,0.12);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial; -webkit-font-smoothing:antialiased; color:#e6f0ff}
-    body{
-      background: radial-gradient(1200px 600px at 10% 20%, rgba(137,189,255,0.06), transparent 8%),
-                  linear-gradient(180deg,var(--bg1),var(--bg2));
-      padding:18px;display:flex;align-items:flex-start;justify-content:center;gap:18px;min-height:100vh;
-    }
-
-    .app{
-      width:100%;max-width:1100px;display:grid;grid-template-columns:1fr 1.25fr;gap:18px;
-    }
-
-    header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-    .title{
-      display:flex;align-items:center;gap:14px
-    }
-    .logo{
-      width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#88d3ff33,#9bd1ff22);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:var(--accent);backdrop-filter: blur(6px);box-shadow:0 6px 18px rgba(13,34,64,0.6) inset
-    }
-    h1{margin:0;font-size:20px;letter-spacing:0.4px}
-    p.sub{margin:0;color:#9bb7d9;font-size:13px}
-
-    .controls{display:flex;gap:10px;align-items:center}
-    .btn{
-      border:1px solid var(--btn-border);padding:10px 14px;border-radius:12px;background:transparent;color:inherit;font-weight:600;cursor:pointer;outline:none;position:relative;overflow:hidden;
-      transition:transform .14s ease, box-shadow .14s ease;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.45);
-    }
-    .btn:active{transform:scale(.98)}
-    .btn.outline{border:1px solid rgba(143,211,255,0.18)}
-    .btn.admin{display:flex;gap:8px;align-items:center}
-
-    /* main cards */
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.5);min-height:380px}
-
-    /* left column categories */
-    .categories{display:flex;flex-direction:column;gap:12px}
-    .category{position:relative}
-    .cat-btn{
-      width:100%;text-align:left;padding:14px;border-radius:12px;border:1px solid var(--btn-border);background:transparent;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;cursor:pointer;outline:none;
-      transition:all .18s ease;backdrop-filter: blur(6px)
-    }
-    .cat-btn .name{display:flex;gap:10px;align-items:center}
-    .cat-btn .dot{width:12px;height:12px;border-radius:4px;background:linear-gradient(180deg,#9bd1ff,#6fbfff);box-shadow:0 6px 14px rgba(110,170,255,0.12) inset}
-    .cat-btn.active{background:linear-gradient(90deg, rgba(143,211,255,0.06), rgba(143,211,255,0.03));box-shadow:0 8px 30px rgba(15,60,120,0.12);border:1px solid rgba(143,211,255,0.26)}
-    .cat-btn:after{content:'';position:absolute;left:0;top:0;bottom:0;width:0;border-radius:12px;pointer-events:none}
-
-    .subtests{position:absolute;left:0;top:calc(100% + 10px);width:100%;padding:10px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(3,10,24,0.6);z-index:40;transform-origin:top;display:none}
-    .category.open .subtests{display:block}
-    .subtests .sbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;margin-bottom:8px}
-    .sbtn .sname{font-weight:600}
-    .sbtn .play{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
-    .sbtn .play:active{transform:scale(.98)}
-
-    /* right column viewer */
-    .viewer{display:flex;flex-direction:column;gap:12px}
-    .viewer .top{display:flex;align-items:center;justify-content:space-between}
-    .viewer .frame-wrap{flex:1;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);min-height:360px;background:linear-gradient(180deg,#071428, #021022)}
-    iframe{width:100%;height:100%;border:0}
-
-    /* modal admin */
-    .modal-back{position:fixed;inset:0;background:rgba(2,8,20,0.6);display:none;align-items:center;justify-content:center;padding:18px;z-index:999}
-    .modal{width:100%;max-width:720px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.03)}
-    .modal h2{margin:0 0 8px 0}
-    .form-row{display:flex;gap:8px;margin-bottom:10px}
-    .form-row input[type=text], .form-row textarea, select{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:inherit}
-    textarea{min-height:120px}
-    .tabs{display:flex;gap:8px;margin-bottom:12px}
-    .tab{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
-    .tab.active{background:linear-gradient(90deg, rgba(143,211,255,0.06), rgba(143,211,255,0.03));font-weight:700}
-
-    .note{font-size:12px;color:#9bb7d9}
-
-    /* responsive */
-    @media (max-width:900px){
-      .app{grid-template-columns:1fr;}
-      .viewer{order:2}
-    }
-
-    /* small animations */
-    .btn::after{content:'';position:absolute;left:-120%;top:0;height:100%;width:120%;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02));transform:skewX(-16deg);transition:all .8s ease;opacity:0}
-    .btn:hover::after{left: -10%;opacity:1}
-
-    .cat-btn:active{transform:translateY(1px)}
-    .sbtn:active{transform:translateY(1px)}
-
-    .small{font-size:13px;color:#9bb7d9}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>फ्री जॉब टेस्ट</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-button {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px极速飞艇微信群15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,极速飞艇微信群0.15);
+            border-color: #2a5298;
+        }
+        
+        .button-image {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            color: #1e3c72;
+        }
+        
+        .button-name {
+            padding: 15px 10px;
+            font-weight: 600;
+            color: #2a5298;
+            background: white;
+        }
+        
+        .subtests-container {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #2a5298;
+        }
+        
+        .subtest-header {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e3c72;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .subtest-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+        
+极速飞艇微信群        .subtest-item:last-child {
+            border-bottom: none;
+        }
+        
+        .subtest-item i {
+            margin-right: 10px;
+            color: #2a5298;
+        }
+        
+        .subtest-item a {
+            color: #2a5298;
+            text-decoration: none;
+            display: block;
+            transition: color 0.2s;
+            flex: 1;
+        }
+        
+        .subtest-item a:hover {
+            color: #1e3c72;
+            text-decoration: underline;
+        }
+        
+        .admin-login-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #2a5298;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px;
+            transition: all 极速飞艇微信群0.3s;
+        }
+        
+        .极速飞艇微信群admin-login-btn:hover {
+            transform: scale(1.1);
+            background: #1e3c72;
+        }
+        
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .admin-content {
+            background: white;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 15px;
+            padding: 25px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .close-admin {
+            cursor: pointer;
+            font-size: 28px;
+            color: #999;
+            transition: color 0.2s;
+        }
+        
+        .close-admin:hover {
+            color: #ff0000;
+        }
+        
+        .login-form, .admin-actions {
+            margin-bottom: 20px;
+        }
+        
+        input, textarea, select, button {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.2);
+        }
+        
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #1极速飞艇微信群e3c72;
+        }
+        
+        .action-title {
+            color: #1e3c72;
+            margin: 20px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1002;
+            animation: fadeIn 0.3s;
+        }
+        
+        .firebase-config {
+            background: #f9f9极速飞艇微信群f9;
+            padding: 极速飞艇微信群15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .firebase-config h4 {
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            grid-column: 1 / -1;
+        }
+        
+        .loading i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #2a5298;
+        }
+        
+        .error-container {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .error-container h3 {
+            color: #d32f2f;
+            margin-bottom: 15px;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .delete-btn {
+            background: #f44336;
+            width: auto;
+            padding: 8px 15px;
+            margin-top: 5px;
+        }
+        
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .button-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .button-item:last-child {
+            border-bottom: none;
+        }
+        
+        .button-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8极速飞艇微信群px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .buttons-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-image {
+                height: 100px;
+                font-size: 40px;
+极速飞艇微信群            }
+        }
+        
+        @media (max-width: 480px) {
+            .buttons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .admin-content {
+                padding: 20px 15px;
+            }
+        }
+        
+        .url-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .url-input-container input {
+            flex: 1;
+        }
+        
+        .url-input-container button {
+            width: auto;
+            padding: 14px 20px;
+        }
+        
+        .drive-format {
+            font-size: 12px;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+    </style>
+    
+    <!-- Firebase App और Firestore SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/f极速飞艇微信群irebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <div class="app">
     <header>
-      <div class="title">
-        <div class="logo">FJT</div>
-        <div>
-          <h1>Free Job Test</h1>
-          <p class="sub">Futuristic mobile-first test theme — Admin-controlled</p>
+        <div class="container">
+            <h1>फ्री जॉब टेस्ट</h1>
+            <p class="tagline">सरकारी नौकरी की तैयारी के लिए मुफ्त टेस्ट</p>
         </div>
-      </div>
-      <div class="controls">
-        <button class="btn outline" id="exportAll">Export Backup</button>
-        <button class="btn admin" id="openAdmin">🔒 Admin</button>
-      </div>
     </header>
-
-    <div class="panel">
-      <div class="categories" id="categories"></div>
+    
+    <div class="container">
+        <div class="buttons-grid" id="buttonsContainer">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>डेटा लोड हो रहा है...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-login-btn" id="adminLoginBtn">
+        <i class="fas fa-cog"></i>
+    </div>
+    
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-content">
+            <div class极速飞艇微信群="admin-header">
+                <h2>एडमिन पैनल</h2>
+                <span class="close-admin" id="closeAdmin">&times;</span>
+            </div>
+            
+            <div class="firebase-config">
+                <h4>Firebase कॉन्फ़िगरेशन आवश्यक</h4>
+                <p>इस थीम को काम करने के लिए, कृपया Firebase कॉन्फ़िगरेशन जोड़ें और Authentication सक्षम करें।</p>
+            </div>
+            
+            <div id="authContainer">
+                <div class="login-form" id="loginForm">
+                    <h3 class="action-title">एडमिन लॉगिन</h3>
+                    <input type="email" id="loginEmail" placeholder="ईमेल एड्रेस">
+                    <input type="password" id="loginPassword" placeholder="पासवर्ड">
+                    <button id="loginBtn">लॉगिन</button>
+                </div>
+            </div>
+            
+            <div class="admin-actions" id="adminActions" style="display: none;">
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <span id="adminEmail" style="color: #2a5298; font-weight: bold;"></span>
+                    <button id="logoutBtn" style="width: auto; padding: 8px 15px; margin-left: 10px;">लॉगआउट</button>
+                </div>
+                
+                <h3 class="action-title">नया बटन जोड़ें</h3>
+                <input type="text" id="buttonName" placeholder="बटन का नाम (जैसे: दिल्ली पुलिस टेस्ट)">
+                
+                <div class="image-preview" id="imagePreview">
+                    <span>इमेज प्रिव्यू</span>
+                </div>
+                
+                <div class="url-input-container">
+                    <input type="text" id="buttonImageUrl" placeholder="इमेज URL (Google Drive लिंक)">
+                    <button id="previewImageBtn">प्रिव्यू</button>
+                </div>
+                <p class="drive-format">Google Drive लिंक फॉर्मेट: https://drive.google.com/uc?export=view&id=YOUR_FILE_ID</p>
+                
+                <button id="addButton">बटन जोड़ें</button>
+                
+                <h3 class="action-title">मौजूदा बटन डिलीट करें</h3>
+                <div class="button-list" id="buttonList">
+                    <!-- बटन लिस्ट यहाँ लोड होगी -->
+                </div>
+                
+                <h3 class="action-title">सबटेस्ट जोड़ें</h3>
+                <select id="buttonSelect">
+                    <option value="">बटन चुनें</option>
+                </select>
+                <input type="text" id="subtestName" placeholder="सबटेस्ट का नाम">
+                <input type="text" id="subtestLink" placeholder="HTML फाइल लिंक">
+                <button id="addSubtest">सबटेस्ट जोड़ें</button>
+                
+                <h3 class="action-title">डेटा प्रबंधन</h3>
+                <button id="addSampleData">नमूना डेटा जोड़ें</button>
+            </div>
+        </div>
     </div>
 
-    <div class="panel viewer">
-      <div class="top">
-        <div>
-          <div class="small">Selected Test Preview</div>
-          <div style="font-weight:700" id="viewerTitle">कोई टेस्ट नहीं चुना गया</div>
-        </div>
-        <div class="small note">टिप: एडमिन पैनल से नई टेस्‍ट जोड़ें — वो ऑटो-अपडेट करेगी</div>
-      </div>
-      <div class="frame-wrap" id="frameWrap">
-        <iframe id="testFrame" sandbox="allow-same-origin allow-scripts"></iframe>
-      </div>
-    </div>
+    <div class="notification" id="notification"></div>
 
-  </div>
-
-  <!-- ADMIN MODAL -->
-  <div class="modal-back" id="modalBack">
-    <div class="modal" role="dialog">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <h2 id="adminHeading">Admin Panel</h2>
-        <div>
-          <button class="btn" id="adminLogout" style="display:none">Logout</button>
-          <button class="btn" id="closeModal">Close</button>
-        </div>
-      </div>
-
-      <div id="loginArea">
-        <div class="note">Admin access required. पहली बार लगाते समय नया पासवर्ड सेट कर सकते हैं।</div>
-        <div class="form-row" style="margin-top:10px">
-          <input type="password" id="adminPw" placeholder="Admin Password" />
-          <button class="btn" id="loginBtn">Login / Set</button>
-        </div>
-      </div>
-
-      <div id="adminArea" style="display:none">
-        <div class="tabs" id="tabs">
-          <div class="tab active" data-tab="manage">Manage</div>
-          <div class="tab" data-tab="add">Add Test</div>
-          <div class="tab" data-tab="import">Import / Export</div>
-          <div class="tab" data-tab="prefs">Settings</div>
-        </div>
-
-        <div id="tab-manage" class="tabpanel">
-          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-            <input type="text" id="newCatName" placeholder="नई श्रेणी का नाम (उदा: Delhi Police)" />
-            <button class="btn" id="addCatBtn">Add Category</button>
-          </div>
-
-          <div id="manageList" style="max-height:220px;overflow:auto"></div>
-        </div>
-
-        <div id="tab-add" class="tabpanel" style="display:none">
-          <div class="form-row">
-            <select id="selectCat"></select>
-            <input type="text" id="subtestName" placeholder="Subtest का नाम" />
-          </div>
-
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input type="file" id="fileHtml" accept="text/html" />
-            <button class="btn" id="pasteBtn">Paste HTML</button>
-            <button class="btn" id="saveSubtest">Save</button>
-          </div>
-
-          <textarea id="htmlContent" placeholder="या यहाँ HTML पेस्ट करें (या फाइल चुनें)"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn" id="previewAdmin">Preview</button>
-            <button class="btn" id="clearHtml">Clear</button>
-          </div>
-          <div id="adminPreview" style="margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);min-height:120px"></div>
-        </div>
-
-        <div id="tab-import" class="tabpanel" style="display:none">
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <button class="btn" id="exportBtn">Download JSON Backup</button>
-            <input type="file" id="importFile" accept="application/json" />
-          </div>
-          <div class="note">Export करके बैकअप रखें — localStorage क्लियर होने पर आप इसे Import कर सकते हैं।</div>
-        </div>
-
-        <div id="tab-prefs" class="tabpanel" style="display:none">
-          <div class="form-row">
-            <input type="password" id="currentPw" placeholder="Current Password (अगर सेट है)" />
-            <input type="password" id="newPw" placeholder="New Password" />
-            <button class="btn" id="changePw">Change</button>
-          </div>
-          <div class="note">नोट: यह पासवर्ड सिर्फ client-side में localStorage में सेव होगा (यानी पूर्ण सुरक्षा के लिए server चाहिए)।</div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    // ===== data structure =====
-    const STORAGE_KEY = 'fj_data_v1';
-    let state = {categories:[], subtests:[], adminPassword:null};
-    let adminLogged = false;
-
-    // default categories (approx 10 as user requested)
-    const defaultCats = [
-      'Delhi Police Test','Rajasthan Police Test','UP Police Test','Bihar Police Test','Haryana Police Test',
-      'Railway Group D Test','Railway NTPC Test','Rajasthan Group D','SSC CGL','Bank PO'
-    ];
-
-    // util
-    const uid = (p='id')=> p + '-' + Math.random().toString(36).slice(2,9);
-
-    function load(){
-      try{
-        const s = localStorage.getItem(STORAGE_KEY);
-        if(s){ state = JSON.parse(s); }
-        else{
-          state.categories = defaultCats.map((n,i)=>({id:uid('cat'),name:n}));
-          state.subtests = [];
-          // do not set password by default so admin must set
-          state.adminPassword = null;
-          save();
+    <script>
+        // ================== FIREBASE कॉन्फ़िगरेशन ==================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0ZKcpIQEnBXHz极速飞艇微信群PsfVNlwdL9Y-iJ4diZY",
+            authDomain: "test-246af.firebaseapp.com",
+            projectId: "test-246af",
+            storageBucket: "test-246af.firebasestorage.app",
+            messagingSenderId: "1025448533875",
+            app极速飞艇微信群Id: "1:1025448533875:web:465de230000c809a1cef06"
+        };
+        
+        // Firebase को इनिशियलाइज़ करें
+        let db, auth;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+            showNotification("Firebase कॉन्फ़िगरेशन में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।", false);
         }
-      }catch(e){console.error(e); state = {categories:[],subtests:[],adminPassword:null};}
-    }
-    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-
-    // render
-    function renderCategories(){
-      const container = document.getElementById('categories'); container.innerHTML='';
-      state.categories.forEach(cat=>{
-        const c = document.createElement('div'); c.className='category'; c.dataset.id = cat.id;
-        const btn = document.createElement('button'); btn.className='cat-btn';
-        btn.innerHTML = `<div class="name"><div class="dot"></div><div style=\"min-width:120px\">${cat.name}</div></div><div style=\"opacity:.9\">▾</div>`;
-        btn.addEventListener('click',()=>{ toggleCategory(cat.id, c); });
-        c.appendChild(btn);
-
-        const dropdown = document.createElement('div'); dropdown.className='subtests';
-        const subs = state.subtests.filter(s=>s.catId===cat.id);
-        if(subs.length===0){
-          const p = document.createElement('div'); p.className='small'; p.style.padding='6px'; p.textContent='कोई सब-टेस्ट नहीं। (Admin से जोड़ें)'; dropdown.appendChild(p);
-        } else {
-          subs.forEach(s=>{
-            const row = document.createElement('div'); row.className='sbtn';
-            const left = document.createElement('div'); left.className='sname'; left.textContent = s.name;
-            const right = document.createElement('div');
-            const open = document.createElement('button'); open.className='play'; open.textContent='Start';
-            open.addEventListener('click', ()=> openSubtest(s.id));
-            const more = document.createElement('button'); more.className='play'; more.textContent='⋯';
-            more.addEventListener('click', ()=> adminQuickActions(s.id));
-            right.appendChild(open); right.appendChild(more);
-            row.appendChild(left); row.appendChild(right);
-            dropdown.appendChild(row);
-          })
+        
+        // DOM elements
+        const buttonsContainer = document.getElementById('buttonsContainer');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        const closeAdmin = document.getElementById('closeAdmin');
+        const authContainer = document.getElementById('authContainer');
+        const loginForm = document.getElementById('loginForm');
+        const adminActions = document.getElementById('adminActions');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminEmail = document.getElementById('adminEmail');
+        const buttonName = document.getElementById('buttonName');
+        const buttonImageUrl = document.getElementById('buttonImageUrl');
+        const previewImageBtn = document.getElementById('previewImageBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const addButton = document.getElementById('addButton');
+        const buttonSelect = document.getElementById('buttonSelect');
+        const subtestName = document.getElementById('subtestName');
+        const subtestLink = document.getElementById('subtest极速飞艇微信群Link');
+        const addSubtest = document.getElementById('addSubtest');
+        const addSample极速飞艇微信群Data = document.getElementById('addSampleData');
+        const notification = document.getElementById('notification');
+        const buttonList = document.getElementById('buttonList');
+        
+        // डेटा लोड करें
+        let buttonsData = [];
+        let unsubscribe = null;
+        
+        // पेज लोड होने पर डेटा लोड करें
+        document.addEventListener('DOMContentLoaded', function() {
+            if (db) {
+                loadData();
+                setupAuthStateListener();
+            } else {
+                showError("Firebase कॉन्फ़िगरेशन आवश्यक");
+            }
+            setupEventListeners();
+        });
+        
+        // Firebase से डेटा लोड करें
+        function loadData() {
+            if (!db) return;
+            
+            showLoading();
+            
+            // रीयल-टाइम लिसनर सेट करें
+            unsubscribe = db.collection("buttons").orderBy("order", "asc")
+                .onSnapshot((querySnapshot) => {
+                    buttonsData = [];
+                    querySnapshot.forEach((doc极速飞艇微信群) => {
+                        buttonsData.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderButtons();
+                    updateButtonSelect();
+                    updateButtonList();
+                }, (error) => {
+                    console.error("Firebase error:", error);
+                    showError("डेटा लोड करने में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।");
+                });
         }
-
-        c.appendChild(dropdown);
-        container.appendChild(c);
-      })
-      // Update select in admin
-      refreshSelectCat();
-    }
-
-    function toggleCategory(catId, el){
-      // close others
-      document.querySelectorAll('.category').forEach(node=>{
-        if(node.dataset.id===catId) node.classList.toggle('open'); else node.classList.remove('open');
-      })
-      // set active style
-      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
-      const catBtn = el.querySelector('.cat-btn'); if(el.classList.contains('open')) catBtn.classList.add('active');
-      else catBtn.classList.remove('active');
-    }
-
-    function openSubtest(subId){
-      const s = state.subtests.find(x=>x.id===subId); if(!s) return;
-      document.getElementById('viewerTitle').textContent = s.name;
-      const iframe = document.getElementById('testFrame');
-      try{
-        iframe.srcdoc = s.content; // render directly
-      }catch(e){
-        // fallback: blob
-        const blob = new Blob([s.content], {type:'text/html'});
-        const url = URL.createObjectURL(blob);
-        iframe.src = url;
-        setTimeout(()=> URL.revokeObjectURL(url), 60000);
-      }
-      // scroll iframe into view on small screens
-      document.getElementById('frameWrap').scrollIntoView({behavior:'smooth'});
-    }
-
-    // admin quick actions: preview, delete
-    function adminQuickActions(subId){
-      if(!adminLogged){ alert('Admin login required to manage tests'); return; }
-      const s = state.subtests.find(x=>x.id===subId);
-      if(!s) return;
-      const doIt = confirm('Delete subtest "'+s.name+'" ? (OK to delete)');
-      if(doIt){ state.subtests = state.subtests.filter(x=>x.id!==subId); save(); renderCategories(); alert('Deleted'); }
-    }
-
-    // admin features
-    function refreshSelectCat(){
-      const sel = document.getElementById('selectCat'); sel.innerHTML='';
-      state.categories.forEach(c=>{ const opt = document.createElement('option'); opt.value=c.id; opt.textContent = c.name; sel.appendChild(opt); })
-    }
-
-    document.getElementById('openAdmin').addEventListener('click', ()=>{
-      document.getElementById('modalBack').style.display='flex';
-      updateAdminUI();
-    });
-    document.getElementById('closeModal').addEventListener('click', ()=>{
-      document.getElementById('modalBack').style.display='none';
-    });
-
-    document.getElementById('loginBtn').addEventListener('click', ()=>{
-      const pw = document.getElementById('adminPw').value.trim();
-      if(!pw){ alert('पासवर्ड चाहिए'); return; }
-      const stored = state.adminPassword;
-      if(!stored){ // first time set
-        if(!confirm('यह पहली बार पासवर्ड सेट कर रहे हैं। Set '+pw+' as admin password?')) return;
-        state.adminPassword = pw; save(); adminLogged=true; updateAdminUI(); alert('Password set और लॉगिन हुआ');
-      } else {
-        if(pw===stored){ adminLogged=true; updateAdminUI(); alert('Logged in'); }
-        else alert('गलत पासवर्ड');
-      }
-      document.getElementById('adminPw').value='';
-    });
-
-    function updateAdminUI(){
-      if(adminLogged){
-        document.getElementById('loginArea').style.display='none';
-        document.getElementById('adminArea').style.display='block';
-        document.getElementById('adminLogout').style.display='inline-block';
-        document.getElementById('adminHeading').textContent = 'Admin Panel — Logged In';
-      } else {
-        document.getElementById('loginArea').style.display='block';
-        document.getElementById('adminArea').style.display='none';
-        document.getElementById('adminLogout').style.display='none';
-        document.getElementById('adminHeading').textContent = 'Admin Panel';
-      }
-    }
-
-    document.getElementById('adminLogout').addEventListener('click', ()=>{ adminLogged=false; updateAdminUI(); });
-
-    // tabs
-    document.querySelectorAll('.tab').forEach(t=> t.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelectorAll('.tabpanel').forEach(p=>p.style.display='none');
-      document.getElementById('tab-'+t.dataset.tab).style.display='block';
-    }));
-
-    // add category
-    document.getElementById('addCatBtn').addEventListener('click', ()=>{
-      const v = document.getElementById('newCatName').value.trim();
-      if(!v) return alert('नाम डालें');
-      state.categories.push({id:uid('cat'),name:v}); save(); renderCategories(); document.getElementById('newCatName').value='';
-    });
-
-    // file upload to textarea
-    document.getElementById('fileHtml').addEventListener('change', (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      const reader = new FileReader();
-      reader.onload = evt => { document.getElementById('htmlContent').value = evt.target.result; }
-      reader.readAsText(f,'utf-8');
-    });
-
-    document.getElementById('pasteBtn').addEventListener('click', ()=>{
-      const t = document.getElementById('htmlContent'); t.focus(); t.select(); document.execCommand('paste'); // may not always work in browsers
-      alert('अब HTML पेस्ट करें या File चुनें और Save पर क्लिक करें');
-    });
-
-    document.getElementById('saveSubtest').addEventListener('click', ()=>{
-      if(!adminLogged){ alert('Admin login करें'); return; }
-      const catId = document.getElementById('selectCat').value; const name = document.getElementById('subtestName').value.trim(); const html = document.getElementById('htmlContent').value;
-      if(!catId || !name || !html) return alert('Category, Subtest नाम और HTML आवश्यक हैं');
-      state.subtests.push({id:uid('st'),catId, name, content:html, createdAt:Date.now()}); save(); renderCategories(); document.getElementById('subtestName').value=''; document.getElementById('htmlContent').value=''; document.getElementById('adminPreview').innerHTML=''; alert('Subtest saved and available immediately');
-    });
-
-    document.getElementById('previewAdmin').addEventListener('click', ()=>{
-      const html = document.getElementById('htmlContent').value; if(!html) return alert('पहले HTML डाले');
-      document.getElementById('adminPreview').innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" style="width:100%;height:240px;border:0" srcdoc="'+escapeForSrcdoc(html)+'"></iframe>';
-    });
-
-    function escapeForSrcdoc(s){ return s.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'\n'); }
-
-    document.getElementById('clearHtml').addEventListener('click', ()=>{ document.getElementById('htmlContent').value=''; document.getElementById('adminPreview').innerHTML=''; });
-
-    // export and import
-    document.getElementById('exportBtn').addEventListener('click', ()=>{ downloadJSON(state, 'free-job-test-backup.json'); });
-    document.getElementById('exportAll').addEventListener('click', ()=>{ downloadJSON(state, 'free-job-test-backup.json'); alert('Backup डाउनलोड हो गया (यदि ब्राउज़र允 अनुमति दे)'); });
-
-    document.getElementById('importFile').addEventListener('change', (e)=>{
-      const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev=>{
-        try{ const imported = JSON.parse(ev.target.result); if(!imported.categories) return alert('गलत फाइल'); if(confirm('Import करने पर मौजूदा data बदल जाएगा। Continue?')){ state = imported; save(); renderCategories(); alert('Imported'); document.getElementById('modalBack').style.display='none'; }}catch(err){alert('Import error')}
-      }; r.readAsText(f,'utf-8');
-    });
-
-    function downloadJSON(obj, filename){ const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 60000); }
-
-    // change password
-    document.getElementById('changePw').addEventListener('click', ()=>{
-      const cur = document.getElementById('currentPw').value; const nw = document.getElementById('newPw').value; if(!nw) return alert('नया पासवर्ड डालें');
-      if(state.adminPassword && state.adminPassword !== cur) return alert('Current password गलत');
-      state.adminPassword = nw; save(); alert('Password बदला गया'); document.getElementById('currentPw').value=''; document.getElementById('newPw').value='';
-    });
-
-    // init
-    load(); renderCategories();
-
-    // HELPFUL NOTES for user (not displayed) — but we will show instructions in chat.
-
-  </script>
+        
+        // ऑथ स्टेट लिसनर सेटअप करें
+        function setupAuthStateListener() {
+            if (!auth) return;
+            
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    adminEmail.textContent = user.email;
+                    authContainer.style.display = 'none';
+                    adminActions.style.display = 'block';
+                } else {
+                    // User is signed out
+                    authContainer.style.display = 'block';
+                    adminActions.style.display = 'none';
+                }
+            });
+        }
+        
+        // लोडिंग स्टेटस दिखाएं
+        function showLoading() {
+            buttonsContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <极速飞艇微信群p>डेटा लोड हो रहा है...</p>
+                </div>
+            `;
+        }
+        
+        // एरर दिखाएं
+        function showError(message极速飞艇微信群) {
+            buttonsContainer.innerHTML = `
+                <div class="error-container">
+                    <h3>त्रुटि</h3>
+                    <p>${message}</p>
+                    <p>Firebase प्रोजेक्ट बनाने के लिए: <a href="https://console.firebase.google.com/" target="_blank">console.firebase.google.com</a></p>
+                </div>
+            `;
+        }
+        
+        // बटन रेंडर करें
+        function renderButtons() {
+            if (buttonsData.length === 0) {
+                buttonsContainer.innerHTML = `
+                    <div class="error-container">
+                        <h3>कोई बटन उपलब्ध नहीं है</h3>
+                        <p>एडमिन पैनल से बटन जोड़ें</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            buttonsContainer.innerHTML = '';
+            
+            buttonsData.forEach(button => {
+                const buttonElement = document.createElement('div');
+                buttonElement.className = 'test-button';
+                buttonElement.innerHTML = `
+                    <div class="button-image">
+                        ${button.image ? `<img src="${button.image}" alt="${button.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                        '<i class="fas fa-book-open"></i>'}
+                    </div>
+                    <div class="button-name">${button.name}</div>
+                `;
+                
+                const subtestsContainer = document.createElement('div');
+                subtestsContainer.className = 'subtests-container';
+                subtestsContainer.id = `subtests-${button.id}`;
+                
+                if (button.subtests && button.subtests.length > 0) {
+                    subtestsContainer.innerHTML = `<div class="subtest-header">${button.name} टेस्ट:</div>`;
+                    
+                    button.subtests.forEach(subtest => {
+                        const subtestElement = document.createElement('div');
+                        subtestElement.className = 'subtest-item';
+                        subtestElement.innerHTML = `
+                            <i class="fas fa-arrow-right"></i>
+                            <a href="${subtest.link}" target="_blank">${subtest.name}</a>
+                        `;
+                        subtestsContainer.appendChild(subtestElement);
+                    });
+                } else {
+                    subtestsContainer.innerHTML = '<div class="subtest-item">कोई सबटेस्ट उपलब्ध नहीं</div>';
+                }
+                
+                buttonElement.addEventListener('click', () => {
+                    const allSubtests = document.querySelectorAll('.subtests-container');
+                    allSubtests.forEach(container => {
+                        if (container.id !== subtestsContainer.id) {
+                            container.style.display = 'none';
+                        }
+                    });
+                    
+                    if (subtestsContainer.style.display === 'block') {
+                        subtestsContainer.style.display = 'none';
+                    } else {
+                        subtestsContainer.style.display = 'block';
+                    }
+                });
+                
+                buttonsContainer.appendChild(buttonElement);
+                buttonsContainer.appendChild(subtestsContainer);
+            });
+        }
+        
+        // बटन सेलेक्ट अपडेट करें
+        function updateButtonSelect() {
+            buttonSelect.innerHTML = '<option value="">बटन चुनें</option>';
+            buttonsData.forEach(button => {
+                const option = document.createElement('option');
+                option.value = button.id;
+                option.textContent = button.name;
+                buttonSelect.appendChild(option);
+            });
+        }
+        
+        // बटन लिस्ट अपडेट करें (डिलीट के लिए)
+        function updateButtonList() {
+            buttonList.innerHTML = '';
+            
+            if (buttonsData.length === 0) {
+                buttonList.innerHTML = '<p极速飞艇微信群>कोई बटन उपलब्ध नहीं है</p>';
+                return;
+            }
+            
+            buttonsData.forEach(button => {
+                const buttonItem = document.createElement('div');
+                buttonItem.className = 'button-item';
+                buttonItem.innerHTML = `
+                    <span>${button.name}</span>
+                    <button class="delete-btn" data-id="${button.id}">डिलीट</button>
+                `;
+                buttonList.appendChild(buttonItem);
+            });
+            
+            // डिलीट बटन के लिए इवेंट लिस्नर जोड़ें
+            const deleteButtons = buttonList.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const buttonId = e.target.getAttribute('data-id');
+                    deleteButton(buttonId);
+                });
+            });
+        }
+        
+        // बटन डिलीट करें
+        async function deleteButton(buttonId) {
+            if (!confirm('क्या आप वाकई इस बटन को डिलीट करना चाहते हैं?')) {
+                return;
+            }
+            
+            try {
+                await db.collection("buttons").doc(buttonId).delete();
+                showNotification('बटन सफलतापूर्वक डिलीट किया गया!');
+            } catch (error) {
+                console.error("Error deleting button: ", error);
+                showNotification('त्रुटि: बटन डिलीट करने में विफल', false);
+            }
+        }
+        
+        // नोटिफिकेशन दिखाएं
+        function showNotification(message, isSuccess = true) {
+            notification.textContent = message;
+            notification.style.background = isSuccess ? '#4CAF极速飞艇微信群50' : '#f44336';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // इवेंट लिस्नर्स सेटअप करें
+        function setupEventListeners() {
+            // एडमिन पैनल टॉगल करें
+            adminLoginBtn.addEventListener('click', () => {
+                adminPanel.style.display = 'flex';
+            });
+            
+            closeAdmin.addEventListener('click', () => {
+                adminPanel.style.display = 'none';
+                // रीसेट फॉर्म
+                loginEmail.value = '';
+                loginPassword.value = '';
+            });
+            
+            // इमेज URL प्रिव्यू बटन
+            previewImageBtn.addEventListener('click', () => {
+                const url = buttonImageUrl.value;
+                if (url) {
+                    imagePreview.innerHTML = `<img src="${url}" alt="Image Preview" onerror="this.parentElement.innerHTML='<span>अमान्य इमेज URL</span>'">`;
+                } else {
+                    imagePreview.innerHTML = '<span>कृपया इमेज URL दर्ज करें</span>';
+                }
+            });
+            
+            // इमेज URL में बदलाव होने पर ऑटो-प्रिव्यू
+            buttonImageUrl.addEventListener('input', (e) => {
+                const url = e.target.value;
+                if (url) {
+                    imagePreview.innerHTML = `<img src="${url}" alt="Image Preview" onerror="this.parentElement.innerHTML='<span>इमेज प्रिव्यू</span>'">`;
+                }
+            });
+            
+            // लॉगिन प्रोसेस
+            loginBtn.addEventListener('click', () => {
+                if (!loginEmail.value || !loginPassword.value) {
+                    showNotification('कृपया ईमेल और पासवर्ड दर्ज करें', false);
+                    return;
+                }
+                
+                if (!auth) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                auth.signInWithEmailAndPassword(loginEmail.value, loginPassword.value)
+                    .then((userCredential) => {
+                        showNotification('लॉगिन सफल!');
+                    })
+                    .catch((error) => {
+                        console.error("Login error:", error);
+                        showNotification('त्रुटि: ' + error.message, false);
+                    });
+            });
+            
+            // लॉगआउट प्रोसेस
+            logoutBtn.addEventListener('click', ()极速飞艇微信群 => {
+                if (!auth) return;
+                
+                auth.signOut()
+                    .then(() => {
+                        showNotification('लॉगआउट सफल!');
+                    })
+                    .catch((error) => {
+                        console.error("Logout error:", error);
+                        showNotification('त्रुटि: ' + error.message, false);
+                    });
+            });
+            
+            // नया बटन जोड़ें
+            addButton.addEventListener('click', async () => {
+                if (!buttonName.value) {
+                    showNotification('कृपया बटन का नाम दर्ज करें', false);
+                    return;
+                }
+                
+                if (!db) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                try {
+                    const newButton = {
+                        name: buttonName.value,
+                        image: buttonImageUrl.value || '',
+                        subtests: [],
+                        order: buttonsData.length
+                    };
+                    
+                    await db.collection("buttons").add(newButton);
+                    showNotification(`"${buttonName.value}" बटन सफलतापूर्वक जोड़ा गया!`);
+                    
+                    // फॉर्म रीसेट
+                    buttonName.value = '';
+                    buttonImageUrl.value = '';
+                    imagePreview.innerHTML = '<span>इमेज प्रिव्यू</span>';
+                } catch (error) {
+                    console.error("Error adding button: ", error);
+                    showNotification('त्रुटि: बटन जोड़ने में विफल', false);
+                }
+            });
+            
+            // सबटेस्ट जोड़ें
+            addSubtest.addEventListener('click', async () => {
+                if (!buttonSelect.value || !subtestName.value || !subtestLink.value) {
+                    showNotification('कृपया सभी फ़ील्ड भरें', false);
+                    return;
+                }
+                
+                if (!db) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                try {
+                    const button极速飞艇微信群Id = buttonSelect.value;
+                    const newSubtest = {
+                        name: subtestName.value,
+                        link: subtestLink.value
+                    };
+                    
+                    const buttonRef = db.collection("buttons").doc(buttonId);
+                    const buttonDoc = await buttonRef.get();
+                    
+                    if (buttonDoc.exists) {
+                        const buttonData = buttonDoc.data();
+                        const updatedSubtests = buttonData.subtests ? [...buttonData.subtests, newSubtest] : [new极速飞艇微信群Subtest];
+                        
+                        await buttonRef.update({
+                            subtests: updatedSubtests
+                        });
+                        
+                        showNotification(`"${subtestName.value}" सबटेस्ट जोड़ा गया!`);
+                        
+                        // फॉर्म रीसेट
+                        subtestName.value = '';
+                        subtestLink.value = '';
+                    } else {
+                        showNotification('बटन नहीं मिला', false);
+                    }
+                } catch (error) {
+                    console.error("Error adding subtest: ", error);
+                    showNotification('त्रुटि: सबटेस्ट जोड़ने में विफल', false);
+                }
+            });
+            
+            // नमूना डेटा जोड़ें
+            addSampleData.addEventListener('click', async () => {
+                if (!db) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                try {
+                    const sampleData = [
+                        {
+                            name: 'दिल्ली पुलिस टेस्ट',
+                            image: '',
+                            subtests: [
+                                { name: 'दिल्ली पुलिस कांस्टेबल', link: 'https://example.com/delhi-police-constable' },
+                                { name: 'दिल्ली पुलिस एसआई', link: 'https://example.com/delhi-police-si' }
+                            ],
+                            order: 0
+                        },
+                        {
+                            name: 'राजस्थान पुलिस टेस्ट',
+                            image: '',
+                            subtests: [
+                                { name: 'राजस्थान पुलिस कांस्टेबल', link: 'https://example.com/rajasthan-police-constable' },
+                                { name: 'राजस्थान पुलिस एसआई', link: 'https://example.com/rajasthan-police-si' }
+                            ],
+                            order极速飞艇微信群: 1
+                        },
+                        {
+                            name: 'एसएससी जीडी',
+                            image: '',
+                            subtests: [
+                                { name: 'एस极速飞艇微信群एससी जीडी मॉक टेस्ट 1', link: 'https://example.com/ssc-gd-mock-1' },
+                                { name: 'एसएससी जीडी मॉक टेस्ट 2', link: 'https://example.com/ssc-gd-mock-2' }
+                            ],
+                            order: 2
+                        },
+                        {
+                            name: 'रेलवे ग्रुप डी',
+                            image: '',
+                            subtests: [
+                                { name: 'रेलवे ग्रुप डी मॉक टेस्ट 1', link: 'https://example.com/railway-group-d-mock-1' },
+                                { name: 'रेलवे ग्रुप डी मॉक टेस्ट 2', link极速飞艇微信群: 'https://example.com/railway-group-d-mock-2' }
+                            ],
+                            order: 3
+                        }
+                    ];
+                    
+                    // पहले मौजूदा डेटा हटाएं
+                    const querySnapshot = await db.collection("buttons").get();
+                    const deletePromises = [];
+                    querySnapshot.forEach((doc) => {
+                        deletePromises.push(db.collection("buttons").doc(doc.id).delete());
+                    });
+                    
+                    await Promise.all(deletePromises);
+                    
+                    // नमूना डेटा जोड़ें
+                    const addPromises = sampleData.map(data => db.collection("buttons").add(data));
+                    await Promise.all(addPromises);
+                    
+                    showNotification('नमूना डेटा जोड़ा गया!');
+                } catch (error) {
+                    console.error("Error adding sample data: ", error);
+                    showNotification('त्रुटि: नमूना डेटा जोड़ने में विफल', false);
+                }
+            });
+        }
+        
+        // पेज अनलोड होने पर लिसनर को हटाएं
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        });
+    </script>
 </body>
 </html>
