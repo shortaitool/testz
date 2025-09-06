@@ -86,6 +86,12 @@
             color: #1e3c72;
         }
         
+        .button-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
         .button-name {
             padding: 15px 10px;
             font-weight: 600;
@@ -243,13 +249,73 @@
         
         .delete-btn {
             background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
             width: auto;
-            padding: 8px 15px;
-            margin-top: 5px;
         }
         
         .delete-btn:hover {
             background: #d32f2f;
+        }
+        
+        .file-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-btn {
+            background: #4CAF50;
+            width: auto;
+            padding: 10px 15px;
+        }
+        
+        .file-upload-btn:hover {
+            background: #388E3C;
+        }
+        
+        .file-name {
+            flex: 1;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .existing-buttons {
+            margin-top: 20px;
+        }
+        
+        .button-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .button-item:last-child {
+            border-bottom: none;
+        }
+        
+        .button-item-info {
+            flex: 1;
+        }
+        
+        .button-item-name {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        
+        .button-item-id {
+            font-size: 12px;
+            color: #777;
         }
         
         .action-title {
@@ -317,53 +383,8 @@
             margin-bottom: 15px;
         }
         
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .auth-tab {
-            padding: 12px 20px;
-            cursor: pointer;
-            text-align: center;
-            flex: 1;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .auth-tab.active {
-            border-bottom: 3px solid #2a5298;
-            font-weight: bold;
-            color: #2a5298;
-        }
-        
-        .auth-form {
-            display: none;
-        }
-        
         .auth-form.active {
             display: block;
-        }
-        
-        .button-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .button-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .button-list-item:last-child {
-            border-bottom: none;
         }
         
         @media (max-width: 768px) {
@@ -380,11 +401,6 @@
                 height: 100px;
                 font-size: 40px;
             }
-            
-            .admin-content {
-                width: 95%;
-                padding: 20px;
-            }
         }
         
         @media (max-width: 480px) {
@@ -393,7 +409,7 @@
             }
             
             .admin-content {
-                padding: 15px;
+                padding: 20px 15px;
             }
         }
     </style>
@@ -402,12 +418,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 </head>
 <body>
     <header>
         <div class="container">
             <h1>फ्री जॉब टेस्ट</h1>
-            <p class="tagline">सरकारी नौकरी की तैयारी के लिए मुफ्त टेस्ट</p>
+            <p class="tagline">सरकारी नौकरी की तैयारी के लिए मुफ्त टेスट</p>
         </div>
     </header>
     
@@ -437,23 +454,11 @@
             </div>
             
             <div id="authContainer">
-                <div class="auth-tabs">
-                    <div class="auth-tab active" id="loginTab">लॉगिन</div>
-                    <div class="auth-tab" id="registerTab">रजिस्टर</div>
-                </div>
-                
                 <div class="auth-form active" id="loginForm">
                     <h3 class="action-title">लॉगिन</h3>
                     <input type="email" id="loginEmail" placeholder="ईमेल एड्रेस">
                     <input type="password" id="loginPassword" placeholder="पासवर्ड">
                     <button id="loginBtn">लॉगिन</button>
-                </div>
-                
-                <div class="auth-form" id="registerForm">
-                    <h3 class="action-title">नया एडमिन रजिस्टर करें</h3>
-                    <input type="email" id="registerEmail" placeholder="ईमेल एड्रेस">
-                    <input type="password" id="registerPassword" placeholder="पासवर्ड (कम से कम 6 अक्षर)">
-                    <button id="registerBtn">रजिस्टर करें</button>
                 </div>
             </div>
             
@@ -465,14 +470,15 @@
                 
                 <h3 class="action-title">नया बटन जोड़ें</h3>
                 <input type="text" id="buttonName" placeholder="बटन का नाम (जैसे: दिल्ली पुलिस टेस्ट)">
-                <input type="text" id="buttonImage" placeholder="इमेज URL (वैकल्पिक)">
-                <button id="addButton">बटन जोड़ें</button>
                 
-                <h3 class="action-title">बटन डिलीट करें</h3>
-                <select id="deleteButtonSelect">
-                    <option value="">डिलीट करने के लिए बटन चुनें</option>
-                </select>
-                <button id="deleteButton" class="delete-btn">बटन डिलीट करें</button>
+                <div class="file-upload">
+                    <input type="file" id="buttonImageFile" accept="image/*" style="display: none;">
+                    <button class="file-upload-btn" id="buttonImageUploadBtn">फोटो चुनें</button>
+                    <div class="file-name" id="buttonImageFileName">कोई फाइल नहीं चुनी गई</div>
+                </div>
+                
+                <input type="text" id="buttonImageUrl" placeholder="या इमेज URL डालें (Google Drive लिंक के लिए)">
+                <button id="addButton">बटन जोड़ें</button>
                 
                 <h3 class="action-title">सबटेस्ट जोड़ें</h3>
                 <select id="buttonSelect">
@@ -481,6 +487,11 @@
                 <input type="text" id="subtestName" placeholder="सबटेस्ट का नाम">
                 <input type="text" id="subtestLink" placeholder="HTML फाइल लिंक">
                 <button id="addSubtest">सबटेस्ट जोड़ें</button>
+                
+                <h3 class="action-title">मौजूदा बटन प्रबंधन</h3>
+                <div class="existing-buttons" id="existingButtons">
+                    <!-- यहाँ मौजूदा बटन लोड होंगे -->
+                </div>
                 
                 <h3 class="action-title">डेटा प्रबंधन</h3>
                 <button id="addSampleData">नमूना डेटा जोड़ें</button>
@@ -503,11 +514,12 @@
         };
         
         // Firebase को इनिशियलाइज़ करें
-        let db, auth;
+        let db, auth, storage;
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             auth = firebase.auth();
+            storage = firebase.storage();
             console.log("Firebase initialized successfully");
         } catch (error) {
             console.error("Firebase initialization error:", error);
@@ -521,33 +533,30 @@
         const closeAdmin = document.getElementById('closeAdmin');
         const authContainer = document.getElementById('authContainer');
         const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
         const adminActions = document.getElementById('adminActions');
         const loginEmail = document.getElementById('loginEmail');
         const loginPassword = document.getElementById('loginPassword');
-        const registerEmail = document.getElementById('registerEmail');
-        const registerPassword = document.getElementById('registerPassword');
         const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const adminEmail = document.getElementById('adminEmail');
         const buttonName = document.getElementById('buttonName');
-        const buttonImage = document.getElementById('buttonImage');
+        const buttonImageFile = document.getElementById('buttonImageFile');
+        const buttonImageUploadBtn = document.getElementById('buttonImageUploadBtn');
+        const buttonImageFileName = document.getElementById('buttonImageFileName');
+        const buttonImageUrl = document.getElementById('buttonImageUrl');
         const addButton = document.getElementById('addButton');
         const buttonSelect = document.getElementById('buttonSelect');
-        const deleteButtonSelect = document.getElementById('deleteButtonSelect');
-        const deleteButton = document.getElementById('deleteButton');
         const subtestName = document.getElementById('subtestName');
         const subtestLink = document.getElementById('subtestLink');
         const addSubtest = document.getElementById('addSubtest');
         const addSampleData = document.getElementById('addSampleData');
         const notification = document.getElementById('notification');
+        const existingButtons = document.getElementById('existingButtons');
         
         // डेटा लोड करें
         let buttonsData = [];
         let unsubscribe = null;
+        let selectedImageFile = null;
         
         // पेज लोड होने पर डेटा लोड करें
         document.addEventListener('DOMContentLoaded', function() {
@@ -559,6 +568,27 @@
             }
             setupEventListeners();
         });
+        
+        // Google Drive लिंक को सही फॉर्मेट में बदलें
+        function convertGoogleDriveLink(url) {
+            if (!url) return '';
+            
+            // अगर यह Google Drive का शेयर लिंक है
+            if (url.includes('drive.google.com/file/d/')) {
+                const fileId = url.match(/file\/d\/([^\/]+)/);
+                if (fileId && fileId[1]) {
+                    return `https://drive.google.com/uc?export=view&id=${fileId[1]}`;
+                }
+            }
+            
+            // अगर यह Google Drive का ID-based लिंक है
+            if (url.includes('drive.google.com/uc?id=')) {
+                return url;
+            }
+            
+            // अगर यह पहले से ही सही फॉर्मेट में है
+            return url;
+        }
         
         // Firebase से डेटा लोड करें
         function loadData() {
@@ -575,7 +605,7 @@
                     });
                     renderButtons();
                     updateButtonSelect();
-                    updateDeleteButtonSelect();
+                    renderExistingButtons();
                 }, (error) => {
                     console.error("Firebase error:", error);
                     showError("डेटा लोड करने में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।");
@@ -596,10 +626,6 @@
                     // User is signed out
                     authContainer.style.display = 'block';
                     adminActions.style.display = 'none';
-                    loginForm.classList.add('active');
-                    registerForm.classList.remove('active');
-                    loginTab.classList.add('active');
-                    registerTab.classList.remove('active');
                 }
             });
         }
@@ -642,10 +668,14 @@
             buttonsData.forEach(button => {
                 const buttonElement = document.createElement('div');
                 buttonElement.className = 'test-button';
+                
+                const imageUrl = convertGoogleDriveLink(button.image);
+                
                 buttonElement.innerHTML = `
                     <div class="button-image">
-                        ${button.image ? `<img src="${button.image}" alt="${button.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                        '<i class="fas fa-book-open"></i>'}
+                        ${imageUrl ? 
+                            `<img src="${imageUrl}" alt="${button.name}" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-book-open\\'></i>';" />` : 
+                            '<i class="fas fa-book-open"></i>'}
                     </div>
                     <div class="button-name">${button.name}</div>
                 `;
@@ -690,6 +720,40 @@
             });
         }
         
+        // मौजूदा बटन रेंडर करें (डिलीट के लिए)
+        function renderExistingButtons() {
+            existingButtons.innerHTML = '';
+            
+            if (buttonsData.length === 0) {
+                existingButtons.innerHTML = '<p>कोई बटन उपलब्ध नहीं है</p>';
+                return;
+            }
+            
+            buttonsData.forEach(button => {
+                const buttonItem = document.createElement('div');
+                buttonItem.className = 'button-item';
+                buttonItem.innerHTML = `
+                    <div class="button-item-info">
+                        <div class="button-item-name">${button.name}</div>
+                        <div class="button-item-id">ID: ${button.id}</div>
+                    </div>
+                    <button class="delete-btn" data-id="${button.id}">डिलीट</button>
+                `;
+                existingButtons.appendChild(buttonItem);
+            });
+            
+            // डिलीट बटन के लिए इवेंट लिस्नर जोड़ें
+            const deleteButtons = existingButtons.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const buttonId = e.target.getAttribute('data-id');
+                    if (confirm('क्या आप वाकई इस बटन को डिलीट करना चाहते हैं?')) {
+                        await deleteButton(buttonId);
+                    }
+                });
+            });
+        }
+        
         // बटन सेलेक्ट अपडेट करें
         function updateButtonSelect() {
             buttonSelect.innerHTML = '<option value="">बटन चुनें</option>';
@@ -698,17 +762,6 @@
                 option.value = button.id;
                 option.textContent = button.name;
                 buttonSelect.appendChild(option);
-            });
-        }
-        
-        // डिलीट बटन सेलेक्ट अपडेट करें
-        function updateDeleteButtonSelect() {
-            deleteButtonSelect.innerHTML = '<option value="">डिलीट करने के लिए बटन चुनें</option>';
-            buttonsData.forEach(button => {
-                const option = document.createElement('option');
-                option.value = button.id;
-                option.textContent = button.name;
-                deleteButtonSelect.appendChild(option);
             });
         }
         
@@ -723,6 +776,35 @@
             }, 3000);
         }
         
+        // इमेज अपलोड करें
+        async function uploadImage(file) {
+            if (!storage) {
+                throw new Error("Firebase Storage उपलब्ध नहीं है");
+            }
+            
+            const storageRef = storage.ref();
+            const imageRef = storageRef.child(`button-images/${Date.now()}_${file.name}`);
+            const snapshot = await imageRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            return downloadURL;
+        }
+        
+        // बटन डिलीट करें
+        async function deleteButton(buttonId) {
+            if (!db) {
+                showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                return;
+            }
+            
+            try {
+                await db.collection("buttons").doc(buttonId).delete();
+                showNotification('बटन सफलतापूर्वक डिलीट किया गया!');
+            } catch (error) {
+                console.error("Error deleting button: ", error);
+                showNotification('त्रुटि: बटन डिलीट करने में विफल', false);
+            }
+        }
+        
         // इवेंट लिस्नर्स सेटअप करें
         function setupEventListeners() {
             // एडमिन पैनल टॉगल करें
@@ -735,23 +817,31 @@
                 // रीसेट फॉर्म
                 loginEmail.value = '';
                 loginPassword.value = '';
-                registerEmail.value = '';
-                registerPassword.value = '';
             });
             
-            // ऑथ टैब स्विच करें
-            loginTab.addEventListener('click', () => {
-                loginForm.classList.add('active');
-                registerForm.classList.remove('active');
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
+            // इमेज अपलोड बटन
+            buttonImageUploadBtn.addEventListener('click', () => {
+                buttonImageFile.click();
             });
             
-            registerTab.addEventListener('click', () => {
-                registerForm.classList.add('active');
-                loginForm.classList.remove('active');
-                registerTab.classList.add('active');
-                loginTab.classList.remove('active');
+            buttonImageFile.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    selectedImageFile = e.target.files[0];
+                    buttonImageFileName.textContent = selectedImageFile.name;
+                    buttonImageUrl.value = ''; // URL फ़ील्ड रीसेट करें
+                } else {
+                    selectedImageFile = null;
+                    buttonImageFileName.textContent = 'कोई फाइल नहीं चुनी गई';
+                }
+            });
+            
+            // URL फ़ील्ड बदलने पर फ़ाइल चयन रीसेट करें
+            buttonImageUrl.addEventListener('input', () => {
+                if (buttonImageUrl.value) {
+                    selectedImageFile = null;
+                    buttonImageFileName.textContent = 'URL उपयोग किया जाएगा';
+                    buttonImageFile.value = '';
+                }
             });
             
             // लॉगिन प्रोसेस
@@ -772,38 +862,6 @@
                     })
                     .catch((error) => {
                         console.error("Login error:", error);
-                        showNotification('त्रुटि: ' + error.message, false);
-                    });
-            });
-            
-            // रजिस्टर प्रोसेस
-            registerBtn.addEventListener('click', () => {
-                if (!registerEmail.value || !registerPassword.value) {
-                    showNotification('कृपया ईमेल और पासवर्ड दर्ज करें', false);
-                    return;
-                }
-                
-                if (registerPassword.value.length < 6) {
-                    showNotification('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए', false);
-                    return;
-                }
-                
-                if (!auth) {
-                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
-                    return;
-                }
-                
-                auth.createUserWithEmailAndPassword(registerEmail.value, registerPassword.value)
-                    .then((userCredential) => {
-                        showNotification('रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।');
-                        // Switch to login tab
-                        loginForm.classList.add('active');
-                        registerForm.classList.remove('active');
-                        loginTab.classList.add('active');
-                        registerTab.classList.remove('active');
-                    })
-                    .catch((error) => {
-                        console.error("Registration error:", error);
                         showNotification('त्रुटि: ' + error.message, false);
                     });
             });
@@ -835,9 +893,21 @@
                 }
                 
                 try {
+                    let imageUrl = '';
+                    
+                    // अगर इमेज फ़ाइल चुनी गई है तो अपलोड करें
+                    if (selectedImageFile) {
+                        showNotification('इमेज अपलोड हो रही है...');
+                        imageUrl = await uploadImage(selectedImageFile);
+                    } 
+                    // अगर URL डाला गया है तो उसे उपयोग करें
+                    else if (buttonImageUrl.value) {
+                        imageUrl = buttonImageUrl.value;
+                    }
+                    
                     const newButton = {
                         name: buttonName.value,
-                        image: buttonImage.value || '',
+                        image: imageUrl,
                         subtests: [],
                         order: buttonsData.length
                     };
@@ -847,41 +917,13 @@
                     
                     // फॉर्म रीसेट
                     buttonName.value = '';
-                    buttonImage.value = '';
+                    buttonImageFile.value = '';
+                    buttonImageFileName.textContent = 'कोई फाइल नहीं चुनी गई';
+                    buttonImageUrl.value = '';
+                    selectedImageFile = null;
                 } catch (error) {
                     console.error("Error adding button: ", error);
                     showNotification('त्रुटि: बटन जोड़ने में विफल', false);
-                }
-            });
-            
-            // बटन डिलीट करें
-            deleteButton.addEventListener('click', async () => {
-                const buttonId = deleteButtonSelect.value;
-                
-                if (!buttonId) {
-                    showNotification('कृपया डिलीट करने के लिए एक बटन चुनें', false);
-                    return;
-                }
-                
-                if (!db) {
-                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
-                    return;
-                }
-                
-                // कन्फर्मेशन डायलॉग
-                if (!confirm('क्या आप वाकई इस बटन को डिलीट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।')) {
-                    return;
-                }
-                
-                try {
-                    await db.collection("buttons").doc(buttonId).delete();
-                    showNotification('बटन सफलतापूर्वक डिलीट किया गया!');
-                    
-                    // डिलीट सेलेक्ट को रीसेट करें
-                    deleteButtonSelect.value = "";
-                } catch (error) {
-                    console.error("Error deleting button: ", error);
-                    showNotification('त्रुटि: बटन डिलीट करने में विफल', false);
                 }
             });
             
