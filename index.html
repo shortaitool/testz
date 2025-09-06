@@ -6,6 +6,7 @@
     <title>फ्री जॉब टेस्ट</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* आपका मौजूदा CSS कोड यहाँ रहेगा */
         * {
             margin: 0;
             padding: 0;
@@ -60,7 +61,7 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 5px极速飞艇微信群15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             cursor: pointer;
             text-align: center;
@@ -70,7 +71,7 @@
         
         .test-button:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,极速飞艇微信群0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             border-color: #2a5298;
         }
         
@@ -118,7 +119,7 @@
             align-items: center;
         }
         
-极速飞艇微信群        .subtest-item:last-child {
+        .subtest-item:last-child {
             border-bottom: none;
         }
         
@@ -156,10 +157,10 @@
             cursor: pointer;
             z-index: 1000;
             font-size: 24px;
-            transition: all 极速飞艇微信群0.3s;
+            transition: all 0.3s;
         }
         
-        .极速飞艇微信群admin-login-btn:hover {
+        .admin-login-btn:hover {
             transform: scale(1.1);
             background: #1e3c72;
         }
@@ -238,7 +239,7 @@
         }
         
         button:hover {
-            background: #1极速飞艇微信群e3c72;
+            background: #1e3c72;
         }
         
         .action-title {
@@ -263,8 +264,8 @@
         }
         
         .firebase-config {
-            background: #f9f9极速飞艇微信群f9;
-            padding: 极速飞艇微信群15px;
+            background: #f9f9f9;
+            padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
             border-left: 4px solid #2a5298;
@@ -284,6 +285,10 @@
             text-align: center;
             padding: 40px;
             grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .loading i {
@@ -316,6 +321,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background-color: #f9f9f9;
         }
         
         .image-preview img {
@@ -351,9 +357,17 @@
             max-height: 200px;
             overflow-y: auto;
             border: 1px solid #ddd;
-            border-radius: 8极速飞艇微信群px;
+            border-radius: 8px;
             padding: 10px;
             margin-bottom: 15px;
+        }
+        
+        .upload-status {
+            font-size: 14px;
+            color: #2a5298;
+            margin-bottom: 10px;
+            text-align: center;
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -369,7 +383,7 @@
             .button-image {
                 height: 100px;
                 font-size: 40px;
-极速飞艇微信群            }
+            }
         }
         
         @media (max-width: 480px) {
@@ -381,32 +395,11 @@
                 padding: 20px 15px;
             }
         }
-        
-        .url-input-container {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .url-input-container input {
-            flex: 1;
-        }
-        
-        .url-input-container button {
-            width: auto;
-            padding: 14px 20px;
-        }
-        
-        .drive-format {
-            font-size: 12px;
-            color: #666;
-            margin-top: -10px;
-            margin-bottom: 15px;
-        }
     </style>
     
     <!-- Firebase App और Firestore SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/f极速飞艇微信群irebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
@@ -432,7 +425,7 @@
     
     <div class="admin-panel" id="adminPanel">
         <div class="admin-content">
-            <div class极速飞艇微信群="admin-header">
+            <div class="admin-header">
                 <h2>एडमिन पैनल</h2>
                 <span class="close-admin" id="closeAdmin">&times;</span>
             </div>
@@ -463,13 +456,7 @@
                 <div class="image-preview" id="imagePreview">
                     <span>इमेज प्रिव्यू</span>
                 </div>
-                
-                <div class="url-input-container">
-                    <input type="text" id="buttonImageUrl" placeholder="इमेज URL (Google Drive लिंक)">
-                    <button id="previewImageBtn">प्रिव्यू</button>
-                </div>
-                <p class="drive-format">Google Drive लिंक फॉर्मेट: https://drive.google.com/uc?export=view&id=YOUR_FILE_ID</p>
-                
+                <input type="text" id="buttonImageUrl" placeholder="Google Drive इमेज URL (uc?export=view&id=... फॉर्मेट में)">
                 <button id="addButton">बटन जोड़ें</button>
                 
                 <h3 class="action-title">मौजूदा बटन डिलीट करें</h3>
@@ -496,12 +483,12 @@
     <script>
         // ================== FIREBASE कॉन्फ़िगरेशन ==================
         const firebaseConfig = {
-            apiKey: "AIzaSyB0ZKcpIQEnBXHz极速飞艇微信群PsfVNlwdL9Y-iJ4diZY",
+            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
             authDomain: "test-246af.firebaseapp.com",
             projectId: "test-246af",
             storageBucket: "test-246af.firebasestorage.app",
             messagingSenderId: "1025448533875",
-            app极速飞艇微信群Id: "1:1025448533875:web:465de230000c809a1cef06"
+            appId: "1:1025448533875:web:465de230000c809a1cef06"
         };
         
         // Firebase को इनिशियलाइज़ करें
@@ -531,14 +518,13 @@
         const adminEmail = document.getElementById('adminEmail');
         const buttonName = document.getElementById('buttonName');
         const buttonImageUrl = document.getElementById('buttonImageUrl');
-        const previewImageBtn = document.getElementById('previewImageBtn');
         const imagePreview = document.getElementById('imagePreview');
         const addButton = document.getElementById('addButton');
         const buttonSelect = document.getElementById('buttonSelect');
         const subtestName = document.getElementById('subtestName');
-        const subtestLink = document.getElementById('subtest极速飞艇微信群Link');
+        const subtestLink = document.getElementById('subtestLink');
         const addSubtest = document.getElementById('addSubtest');
-        const addSample极速飞艇微信群Data = document.getElementById('addSampleData');
+        const addSampleData = document.getElementById('addSampleData');
         const notification = document.getElementById('notification');
         const buttonList = document.getElementById('buttonList');
         
@@ -567,13 +553,13 @@
             unsubscribe = db.collection("buttons").orderBy("order", "asc")
                 .onSnapshot((querySnapshot) => {
                     buttonsData = [];
-                    querySnapshot.forEach((doc极速飞艇微信群) => {
+                    querySnapshot.forEach((doc) => {
                         buttonsData.push({ id: doc.id, ...doc.data() });
                     });
                     renderButtons();
                     updateButtonSelect();
                     updateButtonList();
-                }, (error) => {
+                }, (error) {
                     console.error("Firebase error:", error);
                     showError("डेटा लोड करने में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।");
                 });
@@ -602,13 +588,13 @@
             buttonsContainer.innerHTML = `
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <极速飞艇微信群p>डेटा लोड हो रहा है...</p>
+                    <p>डेटा लोड हो रहा है...</p>
                 </div>
             `;
         }
         
         // एरर दिखाएं
-        function showError(message极速飞艇微信群) {
+        function showError(message) {
             buttonsContainer.innerHTML = `
                 <div class="error-container">
                     <h3>त्रुटि</h3>
@@ -699,7 +685,7 @@
             buttonList.innerHTML = '';
             
             if (buttonsData.length === 0) {
-                buttonList.innerHTML = '<p极速飞艇微信群>कोई बटन उपलब्ध नहीं है</p>';
+                buttonList.innerHTML = '<p>कोई बटन उपलब्ध नहीं है</p>';
                 return;
             }
             
@@ -741,7 +727,7 @@
         // नोटिफिकेशन दिखाएं
         function showNotification(message, isSuccess = true) {
             notification.textContent = message;
-            notification.style.background = isSuccess ? '#4CAF极速飞艇微信群50' : '#f44336';
+            notification.style.background = isSuccess ? '#4CAF50' : '#f44336';
             notification.style.display = 'block';
             
             setTimeout(() => {
@@ -763,21 +749,13 @@
                 loginPassword.value = '';
             });
             
-            // इमेज URL प्रिव्यू बटन
-            previewImageBtn.addEventListener('click', () => {
-                const url = buttonImageUrl.value;
-                if (url) {
-                    imagePreview.innerHTML = `<img src="${url}" alt="Image Preview" onerror="this.parentElement.innerHTML='<span>अमान्य इमेज URL</span>'">`;
-                } else {
-                    imagePreview.innerHTML = '<span>कृपया इमेज URL दर्ज करें</span>';
-                }
-            });
-            
-            // इमेज URL में बदलाव होने पर ऑटो-प्रिव्यू
+            // इमेज URL प्रिव्यू सेटअप
             buttonImageUrl.addEventListener('input', (e) => {
                 const url = e.target.value;
                 if (url) {
                     imagePreview.innerHTML = `<img src="${url}" alt="Image Preview" onerror="this.parentElement.innerHTML='<span>इमेज प्रिव्यू</span>'">`;
+                } else {
+                    imagePreview.innerHTML = '<span>इमेज प्रिव्यू</span>';
                 }
             });
             
@@ -797,21 +775,21 @@
                     .then((userCredential) => {
                         showNotification('लॉगिन सफल!');
                     })
-                    .catch((error) => {
+                    .catch((error) {
                         console.error("Login error:", error);
                         showNotification('त्रुटि: ' + error.message, false);
                     });
             });
             
             // लॉगआउट प्रोसेस
-            logoutBtn.addEventListener('click', ()极速飞艇微信群 => {
+            logoutBtn.addEventListener('click', () => {
                 if (!auth) return;
                 
                 auth.signOut()
                     .then(() => {
                         showNotification('लॉगआउट सफल!');
                     })
-                    .catch((error) => {
+                    .catch((error) {
                         console.error("Logout error:", error);
                         showNotification('त्रुटि: ' + error.message, false);
                     });
@@ -863,7 +841,7 @@
                 }
                 
                 try {
-                    const button极速飞艇微信群Id = buttonSelect.value;
+                    const buttonId = buttonSelect.value;
                     const newSubtest = {
                         name: subtestName.value,
                         link: subtestLink.value
@@ -874,7 +852,7 @@
                     
                     if (buttonDoc.exists) {
                         const buttonData = buttonDoc.data();
-                        const updatedSubtests = buttonData.subtests ? [...buttonData.subtests, newSubtest] : [new极速飞艇微信群Subtest];
+                        const updatedSubtests = buttonData.subtests ? [...buttonData.subtests, newSubtest] : [newSubtest];
                         
                         await buttonRef.update({
                             subtests: updatedSubtests
@@ -919,13 +897,13 @@
                                 { name: 'राजस्थान पुलिस कांस्टेबल', link: 'https://example.com/rajasthan-police-constable' },
                                 { name: 'राजस्थान पुलिस एसआई', link: 'https://example.com/rajasthan-police-si' }
                             ],
-                            order极速飞艇微信群: 1
+                            order: 1
                         },
                         {
                             name: 'एसएससी जीडी',
                             image: '',
                             subtests: [
-                                { name: 'एस极速飞艇微信群एससी जीडी मॉक टेस्ट 1', link: 'https://example.com/ssc-gd-mock-1' },
+                                { name: 'एसएससी जीडी मॉक टेस्ट 1', link: 'https://example.com/ssc-gd-mock-1' },
                                 { name: 'एसएससी जीडी मॉक टेस्ट 2', link: 'https://example.com/ssc-gd-mock-2' }
                             ],
                             order: 2
@@ -935,7 +913,7 @@
                             image: '',
                             subtests: [
                                 { name: 'रेलवे ग्रुप डी मॉक टेस्ट 1', link: 'https://example.com/railway-group-d-mock-1' },
-                                { name: 'रेलवे ग्रुप डी मॉक टेस्ट 2', link极速飞艇微信群: 'https://example.com/railway-group-d-mock-2' }
+                                { name: 'रेलवे ग्रुप डी मॉक टेस्ट 2', link: 'https://example.com/railway-group-d-mock-2' }
                             ],
                             order: 3
                         }
@@ -965,9 +943,3 @@
         // पेज अनलोड होने पर लिसनर को हटाएं
         window.addEventListener('beforeunload', () => {
             if (unsubscribe) {
-                unsubscribe();
-            }
-        });
-    </script>
-</body>
-</html>
