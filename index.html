@@ -6,7 +6,6 @@
     <title>फ्री जॉब टेस्ट</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* आपका मौजूदा CSS कोड यहाँ रहेगा */
         * {
             margin: 0;
             padding: 0;
@@ -242,6 +241,17 @@
             background: #1e3c72;
         }
         
+        .delete-btn {
+            background: #f44336;
+            width: auto;
+            padding: 8px 15px;
+            margin-top: 5px;
+        }
+        
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+        
         .action-title {
             color: #1e3c72;
             margin: 20px 0 15px;
@@ -285,10 +295,6 @@
             text-align: center;
             padding: 40px;
             grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
         
         .loading i {
@@ -311,46 +317,32 @@
             margin-bottom: 15px;
         }
         
-        .image-preview {
-            width: 100%;
-            height: 150px;
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            margin-bottom: 15px;
+        .auth-tabs {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background-color: #f9f9f9;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
         }
         
-        .image-preview img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+        .auth-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            border-bottom: 3px solid transparent;
         }
         
-        .delete-btn {
-            background: #f44336;
-            width: auto;
-            padding: 8px 15px;
-            margin-top: 5px;
+        .auth-tab.active {
+            border-bottom: 3px solid #2a5298;
+            font-weight: bold;
+            color: #2a5298;
         }
         
-        .delete-btn:hover {
-            background: #d32f2f;
+        .auth-form {
+            display: none;
         }
         
-        .button-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .button-item:last-child {
-            border-bottom: none;
+        .auth-form.active {
+            display: block;
         }
         
         .button-list {
@@ -362,12 +354,16 @@
             margin-bottom: 15px;
         }
         
-        .upload-status {
-            font-size: 14px;
-            color: #2a5298;
-            margin-bottom: 10px;
-            text-align: center;
-            display: none;
+        .button-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .button-list-item:last-child {
+            border-bottom: none;
         }
         
         @media (max-width: 768px) {
@@ -384,6 +380,11 @@
                 height: 100px;
                 font-size: 40px;
             }
+            
+            .admin-content {
+                width: 95%;
+                padding: 20px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -392,7 +393,7 @@
             }
             
             .admin-content {
-                padding: 20px 15px;
+                padding: 15px;
             }
         }
     </style>
@@ -436,11 +437,23 @@
             </div>
             
             <div id="authContainer">
-                <div class="login-form" id="loginForm">
-                    <h3 class="action-title">एडमिन लॉगिन</h3>
+                <div class="auth-tabs">
+                    <div class="auth-tab active" id="loginTab">लॉगिन</div>
+                    <div class="auth-tab" id="registerTab">रजिस्टर</div>
+                </div>
+                
+                <div class="auth-form active" id="loginForm">
+                    <h3 class="action-title">लॉगिन</h3>
                     <input type="email" id="loginEmail" placeholder="ईमेल एड्रेस">
                     <input type="password" id="loginPassword" placeholder="पासवर्ड">
                     <button id="loginBtn">लॉगिन</button>
+                </div>
+                
+                <div class="auth-form" id="registerForm">
+                    <h3 class="action-title">नया एडमिन रजिस्टर करें</h3>
+                    <input type="email" id="registerEmail" placeholder="ईमेल एड्रेस">
+                    <input type="password" id="registerPassword" placeholder="पासवर्ड (कम से कम 6 अक्षर)">
+                    <button id="registerBtn">रजिस्टर करें</button>
                 </div>
             </div>
             
@@ -452,17 +465,14 @@
                 
                 <h3 class="action-title">नया बटन जोड़ें</h3>
                 <input type="text" id="buttonName" placeholder="बटन का नाम (जैसे: दिल्ली पुलिस टेस्ट)">
-                
-                <div class="image-preview" id="imagePreview">
-                    <span>इमेज प्रिव्यू</span>
-                </div>
-                <input type="text" id="buttonImageUrl" placeholder="Google Drive इमेज URL (uc?export=view&id=... फॉर्मेट में)">
+                <input type="text" id="buttonImage" placeholder="इमेज URL (वैकल्पिक)">
                 <button id="addButton">बटन जोड़ें</button>
                 
-                <h3 class="action-title">मौजूदा बटन डिलीट करें</h3>
-                <div class="button-list" id="buttonList">
-                    <!-- बटन लिस्ट यहाँ लोड होगी -->
-                </div>
+                <h3 class="action-title">बटन डिलीट करें</h3>
+                <select id="deleteButtonSelect">
+                    <option value="">डिलीट करने के लिए बटन चुनें</option>
+                </select>
+                <button id="deleteButton" class="delete-btn">बटन डिलीट करें</button>
                 
                 <h3 class="action-title">सबटेस्ट जोड़ें</h3>
                 <select id="buttonSelect">
@@ -482,13 +492,14 @@
 
     <script>
         // ================== FIREBASE कॉन्फ़िगरेशन ==================
+        // यहाँ अपना Firebase कॉन्फ़िगरेशन जोड़ें
         const firebaseConfig = {
-            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
-            authDomain: "test-246af.firebaseapp.com",
-            projectId: "test-246af",
-            storageBucket: "test-246af.firebasestorage.app",
-            messagingSenderId: "1025448533875",
-            appId: "1:1025448533875:web:465de230000c809a1cef06"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         
         // Firebase को इनिशियलाइज़ करें
@@ -510,23 +521,29 @@
         const closeAdmin = document.getElementById('closeAdmin');
         const authContainer = document.getElementById('authContainer');
         const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
         const adminActions = document.getElementById('adminActions');
         const loginEmail = document.getElementById('loginEmail');
         const loginPassword = document.getElementById('loginPassword');
+        const registerEmail = document.getElementById('registerEmail');
+        const registerPassword = document.getElementById('registerPassword');
         const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const adminEmail = document.getElementById('adminEmail');
         const buttonName = document.getElementById('buttonName');
-        const buttonImageUrl = document.getElementById('buttonImageUrl');
-        const imagePreview = document.getElementById('imagePreview');
+        const buttonImage = document.getElementById('buttonImage');
         const addButton = document.getElementById('addButton');
         const buttonSelect = document.getElementById('buttonSelect');
+        const deleteButtonSelect = document.getElementById('deleteButtonSelect');
+        const deleteButton = document.getElementById('deleteButton');
         const subtestName = document.getElementById('subtestName');
         const subtestLink = document.getElementById('subtestLink');
         const addSubtest = document.getElementById('addSubtest');
         const addSampleData = document.getElementById('addSampleData');
         const notification = document.getElementById('notification');
-        const buttonList = document.getElementById('buttonList');
         
         // डेटा लोड करें
         let buttonsData = [];
@@ -558,8 +575,8 @@
                     });
                     renderButtons();
                     updateButtonSelect();
-                    updateButtonList();
-                }, (error) {
+                    updateDeleteButtonSelect();
+                }, (error) => {
                     console.error("Firebase error:", error);
                     showError("डेटा लोड करने में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।");
                 });
@@ -579,6 +596,10 @@
                     // User is signed out
                     authContainer.style.display = 'block';
                     adminActions.style.display = 'none';
+                    loginForm.classList.add('active');
+                    registerForm.classList.remove('active');
+                    loginTab.classList.add('active');
+                    registerTab.classList.remove('active');
                 }
             });
         }
@@ -680,48 +701,15 @@
             });
         }
         
-        // बटन लिस्ट अपडेट करें (डिलीट के लिए)
-        function updateButtonList() {
-            buttonList.innerHTML = '';
-            
-            if (buttonsData.length === 0) {
-                buttonList.innerHTML = '<p>कोई बटन उपलब्ध नहीं है</p>';
-                return;
-            }
-            
+        // डिलीट बटन सेलेक्ट अपडेट करें
+        function updateDeleteButtonSelect() {
+            deleteButtonSelect.innerHTML = '<option value="">डिलीट करने के लिए बटन चुनें</option>';
             buttonsData.forEach(button => {
-                const buttonItem = document.createElement('div');
-                buttonItem.className = 'button-item';
-                buttonItem.innerHTML = `
-                    <span>${button.name}</span>
-                    <button class="delete-btn" data-id="${button.id}">डिलीट</button>
-                `;
-                buttonList.appendChild(buttonItem);
+                const option = document.createElement('option');
+                option.value = button.id;
+                option.textContent = button.name;
+                deleteButtonSelect.appendChild(option);
             });
-            
-            // डिलीट बटन के लिए इवेंट लिस्नर जोड़ें
-            const deleteButtons = buttonList.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const buttonId = e.target.getAttribute('data-id');
-                    deleteButton(buttonId);
-                });
-            });
-        }
-        
-        // बटन डिलीट करें
-        async function deleteButton(buttonId) {
-            if (!confirm('क्या आप वाकई इस बटन को डिलीट करना चाहते हैं?')) {
-                return;
-            }
-            
-            try {
-                await db.collection("buttons").doc(buttonId).delete();
-                showNotification('बटन सफलतापूर्वक डिलीट किया गया!');
-            } catch (error) {
-                console.error("Error deleting button: ", error);
-                showNotification('त्रुटि: बटन डिलीट करने में विफल', false);
-            }
         }
         
         // नोटिफिकेशन दिखाएं
@@ -747,16 +735,23 @@
                 // रीसेट फॉर्म
                 loginEmail.value = '';
                 loginPassword.value = '';
+                registerEmail.value = '';
+                registerPassword.value = '';
             });
             
-            // इमेज URL प्रिव्यू सेटअप
-            buttonImageUrl.addEventListener('input', (e) => {
-                const url = e.target.value;
-                if (url) {
-                    imagePreview.innerHTML = `<img src="${url}" alt="Image Preview" onerror="this.parentElement.innerHTML='<span>इमेज प्रिव्यू</span>'">`;
-                } else {
-                    imagePreview.innerHTML = '<span>इमेज प्रिव्यू</span>';
-                }
+            // ऑथ टैब स्विच करें
+            loginTab.addEventListener('click', () => {
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+            });
+            
+            registerTab.addEventListener('click', () => {
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
             });
             
             // लॉगिन प्रोसेस
@@ -775,8 +770,40 @@
                     .then((userCredential) => {
                         showNotification('लॉगिन सफल!');
                     })
-                    .catch((error) {
+                    .catch((error) => {
                         console.error("Login error:", error);
+                        showNotification('त्रुटि: ' + error.message, false);
+                    });
+            });
+            
+            // रजिस्टर प्रोसेस
+            registerBtn.addEventListener('click', () => {
+                if (!registerEmail.value || !registerPassword.value) {
+                    showNotification('कृपया ईमेल और पासवर्ड दर्ज करें', false);
+                    return;
+                }
+                
+                if (registerPassword.value.length < 6) {
+                    showNotification('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए', false);
+                    return;
+                }
+                
+                if (!auth) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                auth.createUserWithEmailAndPassword(registerEmail.value, registerPassword.value)
+                    .then((userCredential) => {
+                        showNotification('रजिस्ट्रेशन सफल! अब आप लॉगिन कर सकते हैं।');
+                        // Switch to login tab
+                        loginForm.classList.add('active');
+                        registerForm.classList.remove('active');
+                        loginTab.classList.add('active');
+                        registerTab.classList.remove('active');
+                    })
+                    .catch((error) => {
+                        console.error("Registration error:", error);
                         showNotification('त्रुटि: ' + error.message, false);
                     });
             });
@@ -789,7 +816,7 @@
                     .then(() => {
                         showNotification('लॉगआउट सफल!');
                     })
-                    .catch((error) {
+                    .catch((error) => {
                         console.error("Logout error:", error);
                         showNotification('त्रुटि: ' + error.message, false);
                     });
@@ -810,7 +837,7 @@
                 try {
                     const newButton = {
                         name: buttonName.value,
-                        image: buttonImageUrl.value || '',
+                        image: buttonImage.value || '',
                         subtests: [],
                         order: buttonsData.length
                     };
@@ -820,11 +847,41 @@
                     
                     // फॉर्म रीसेट
                     buttonName.value = '';
-                    buttonImageUrl.value = '';
-                    imagePreview.innerHTML = '<span>इमेज प्रिव्यू</span>';
+                    buttonImage.value = '';
                 } catch (error) {
                     console.error("Error adding button: ", error);
                     showNotification('त्रुटि: बटन जोड़ने में विफल', false);
+                }
+            });
+            
+            // बटन डिलीट करें
+            deleteButton.addEventListener('click', async () => {
+                const buttonId = deleteButtonSelect.value;
+                
+                if (!buttonId) {
+                    showNotification('कृपया डिलीट करने के लिए एक बटन चुनें', false);
+                    return;
+                }
+                
+                if (!db) {
+                    showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                    return;
+                }
+                
+                // कन्फर्मेशन डायलॉग
+                if (!confirm('क्या आप वाकई इस बटन को डिलीट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।')) {
+                    return;
+                }
+                
+                try {
+                    await db.collection("buttons").doc(buttonId).delete();
+                    showNotification('बटन सफलतापूर्वक डिलीट किया गया!');
+                    
+                    // डिलीट सेलेक्ट को रीसेट करें
+                    deleteButtonSelect.value = "";
+                } catch (error) {
+                    console.error("Error deleting button: ", error);
+                    showNotification('त्रुटि: बटन डिलीट करने में विफल', false);
                 }
             });
             
@@ -943,3 +1000,9 @@
         // पेज अनलोड होने पर लिसनर को हटाएं
         window.addEventListener('beforeunload', () => {
             if (unsubscribe) {
+                unsubscribe();
+            }
+        });
+    </script>
+</body>
+</html>
