@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>राजस्थान ग्रुप डी टेस्ट</title>
 <style>
-:root {
-  --primary:#007bff; --success:#28a745; --danger:#dc3545; --warn:#ffc107;
-}
+:root {--primary:#007bff; --success:#28a745; --danger:#dc3545; --warn:#ffc107;}
 body {font-family:Arial,sans-serif;margin:0;padding:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#f0f4f8;color:#333;}
 header {background:var(--primary);color:white;text-align:center;padding:10px;}
 #timer {font-size:24px;font-weight:bold;text-align:center;padding:10px;background:#fff;border-bottom:1px solid #ddd;}
@@ -61,7 +59,9 @@ footer button:hover {background:var(--primary);color:white;}
 <div class="stat-card"><h3 id="rank"></h3><p>रैंक (सिमुलेटेड)</p></div>
 <div class="stat-card"><h3 id="students-attended"></h3><p>स्टूडेंट्स ने अटेंड किया (सिमुलेटेड)</p></div>
 </div>
+
 <canvas id="score-chart"></canvas>
+
 <h3>विस्तृत परिणाम</h3>
 <table class="results-table">
 <thead>
@@ -69,12 +69,14 @@ footer button:hover {background:var(--primary);color:white;}
 </thead>
 <tbody id="results-body"></tbody>
 </table>
+
 <h3>टेस्ट हिस्ट्री</h3>
 <canvas id="history-chart"></canvas>
 </div>
 
 <script>
-const sheetUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv'; // Replace with your CSV URL
+// Google Sheet CSV URL
+const sheetUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv';
 
 let questions=[],currentQuestion=0,answers={},timerInterval,timeLeft=30*60,negativeMarking=0.25,testHistory=JSON.parse(localStorage.getItem('testHistory'))||[];
 
@@ -85,7 +87,7 @@ const csv=await res.text();
 const rows=csv.split('\n').slice(1).filter(r=>r.trim());
 questions=rows.map(r=>{
 const [num,question,a,b,c,d,correct]=r.split(',');
-return {num,question,options:[a,b,c,d],correct};
+return {num,question,options:[a,b,c,d],correct:correct.trim().toUpperCase()};
 });
 renderQuestionNumbers();
 showQuestion(currentQuestion);
@@ -116,10 +118,7 @@ updateActiveButton();
 }
 
 function selectOption(qIndex,optIndex){answers[qIndex]=optIndex;showQuestion(qIndex);renderQuestionNumbers();}
-
-function updateActiveButton(){
-document.querySelectorAll('.question-numbers button').forEach((btn,i)=>{btn.classList.toggle('active',i===currentQuestion);});
-}
+function updateActiveButton(){document.querySelectorAll('.question-numbers button').forEach((btn,i)=>{btn.classList.toggle('active',i===currentQuestion);});}
 
 function startTimer(){
 timerInterval=setInterval(()=>{
@@ -164,14 +163,25 @@ document.getElementById('score').textContent=score;
 document.getElementById('rank').textContent=rank;
 document.getElementById('students-attended').textContent=studentsAttended;
 
-// Detailed results
-const tbody=document.getElementById('results-body'); tbody.innerHTML='';
-questions.forEach((q,i)=>{
-const selIndex=answers[i];
-const sel=selIndex!==undefined?q.options[selIndex]:'कोई नहीं';
-const correctOpt=q.options[['A','B','C','D'].indexOf(q.correct)];
-const status=selIndex!==undefined && ['A','B','C','D'][selIndex]===q.correct?'<span class="correct">सही</span>':(selIndex!==undefined?'<span class="wrong">गलत</span>':'अनअटेम्प्टेड');
-tbody.innerHTML+=`<tr><td>${q.num}</td><td>${q.question}</td><td>${sel}</td><td>${correctOpt}</td><td>${status}</td></tr>`;
+// Detailed results (fixed)
+const tbody = document.getElementById('results-body');
+tbody.innerHTML = '';
+questions.forEach((q, i) => {
+    const selIndex = answers[i];
+    const selectedText = selIndex !== undefined ? q.options[selIndex] : 'कोई नहीं';
+    const correctText = q.options[['A','B','C','D'].indexOf(q.correct)];
+    const status = selIndex !== undefined
+        ? (selectedText === correctText ? '<span class="correct">सही</span>' : '<span class="wrong">गलत</span>')
+        : 'अनअटेम्प्टेड';
+    tbody.innerHTML += `
+        <tr>
+            <td>${q.num}</td>
+            <td>${q.question}</td>
+            <td>${selectedText}</td>
+            <td>${correctText}</td>
+            <td>${status}</td>
+        </tr>
+    `;
 });
 
 // Save history
@@ -180,15 +190,13 @@ localStorage.setItem('testHistory',JSON.stringify(testHistory));
 
 // Charts
 const ctx=document.getElementById('score-chart').getContext('2d');
-new Chart(ctx,{type:'pie',data:{labels:['सही','गलत','अनअटेम्प्टेड'],datasets:[{data:[correct,wrong,unattempted],backgroundColor:[getComputedStyle(document.documentElement).getPropertyValue('--success'),getComputedStyle(document.documentElement).getPropertyValue('--danger'),getComputedStyle(document.documentElement).getPropertyValue('--warn')]}]},options:{responsive:true,plugins:{legend:{position:'top'},title:{display:true,text:'परिणाम ब्रेकडाउन'}}}});
+new Chart(ctx,{type:'pie',data:{labels:['सही','गलत','अनअटेम्प्टेड'],datasets:[{data:[correct,wrong,unattempted],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:true,plugins:{legend:{position:'top'},title:{display:true,text:'परिणाम ब्रेकडाउन'}}}});
 
-const ctxH=document.getElementById('history-chart').getContext('2d');
-const labels=testHistory.map(h=>h.date);
-const data=testHistory.map(h=>h.score);
-new Chart(ctxH,{type:'line',data:{labels,datasets:[{label:'Score History',data,fill:false,borderColor:getComputedStyle(document.documentElement).getPropertyValue('--primary'),tension:0.2} ] },options:{responsive:true,plugins:{legend:{display:true}}}});
+const ctx2=document.getElementById('history-chart').getContext('2d');
+new Chart(ctx2,{type:'line',data:{labels:testHistory.map(h=>h.date),datasets:[{label:'स्कोर',data:testHistory.map(h=>h.score),borderColor:'#007bff',fill:false,tension:0.3}]}});
+
 }
 
-// Initialize
 loadQuestions();
 startTimer();
 </script>
