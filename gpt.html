@@ -18,7 +18,7 @@ header {background:var(--primary);color:white;text-align:center;padding:10px;}
 .question {font-size:18px;margin-bottom:15px;}
 .option {display:block;margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #ddd;border-radius:5px;cursor:pointer;}
 .option.selected {background:var(--primary);color:white;}
-footer {display:flex;justify-content:space-between;padding:10px;background:var(--primary);color:white;}
+footer {display:flex;justify-content:space-between;padding:15px 10px 25px; /* footer ऊपर उठाया */ background:var(--primary);color:white;}
 footer button {padding:10px 20px;background:#fff;color:var(--primary);border:1px solid var(--primary);border-radius:5px;cursor:pointer;flex:1;margin:0 5px;}
 footer button:hover {background:var(--primary);color:white;}
 #dashboard {display:none;flex-direction:column;padding:20px;background:#fff;height:100vh;overflow-y:auto;}
@@ -27,7 +27,7 @@ footer button:hover {background:var(--primary);color:white;}
 .stat-card h3 {margin:0;color:var(--primary);}
 #score-chart,#history-chart {max-width:400px;margin:0 auto;}
 .results-table {width:100%;border-collapse:collapse;margin-top:20px;}
-.results-table th,.results-table td {border:1px solid #ddd;padding:10px;text-align:left;}
+.results-table th,.results-table td {border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;}
 .results-table th {background:var(--primary);color:white;}
 .correct {color:green;}
 .wrong {color:red;}
@@ -75,7 +75,6 @@ footer button:hover {background:var(--primary);color:white;}
 </div>
 
 <script>
-// Google Sheet CSV URL
 const sheetUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv';
 
 let questions=[],currentQuestion=0,answers={},timerInterval,timeLeft=30*60,negativeMarking=0.25,testHistory=JSON.parse(localStorage.getItem('testHistory'))||[];
@@ -163,12 +162,12 @@ document.getElementById('score').textContent=score;
 document.getElementById('rank').textContent=rank;
 document.getElementById('students-attended').textContent=studentsAttended;
 
-// Detailed results (fixed)
+// Detailed results (full options)
 const tbody = document.getElementById('results-body');
 tbody.innerHTML = '';
 questions.forEach((q, i) => {
     const selIndex = answers[i];
-    const selectedText = selIndex !== undefined ? q.options[selIndex] : 'कोई नहीं';
+    const selectedText = selIndex !== undefined ? q.options[selIndex] : 'कोई उत्तर नहीं';
     const correctText = q.options[['A','B','C','D'].indexOf(q.correct)];
     const status = selIndex !== undefined
         ? (selectedText === correctText ? '<span class="correct">सही</span>' : '<span class="wrong">गलत</span>')
