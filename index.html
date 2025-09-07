@@ -6,6 +6,7 @@
     <title>फ्री जॉब टेस्ट</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Existing CSS remains unchanged */
         * {
             margin: 0;
             padding: 0;
@@ -288,11 +289,11 @@
             font-size: 14px;
         }
         
-        .existing-buttons {
+        .existing-buttons, .existing-subtests {
             margin-top: 20px;
         }
         
-        .button-item {
+        .button-item, .subtest-item-admin {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -300,20 +301,20 @@
             border-bottom: 1px solid #eee;
         }
         
-        .button-item:last-child {
+        .button-item:last-child, .subtest-item-admin:last-child {
             border-bottom: none;
         }
         
-        .button-item-info {
+        .button-item-info, .subtest-item-info {
             flex: 1;
         }
         
-        .button-item-name {
+        .button-item-name, .subtest-item-name {
             font-weight: bold;
             color: #1e3c72;
         }
         
-        .button-item-id {
+        .button-item-id, .subtest-item-id {
             font-size: 12px;
             color: #777;
         }
@@ -493,6 +494,14 @@
                     <!-- यहाँ मौजूदा बटन लोड होंगे -->
                 </div>
                 
+                <h3 class="action-title">मौजूदा सबटेस्ट प्रबंधन</h3>
+                <select id="subtestButtonSelect">
+                    <option value="">बटन चुनें</option>
+                </select>
+                <div class="existing-subtests" id="existingSubtests">
+                    <!-- यहाँ मौजूदा सबटेस्ट लोड होंगे -->
+                </div>
+                
                 <h3 class="action-title">डेटा प्रबंधन</h3>
                 <button id="addSampleData">नमूना डेटा जोड़ें</button>
             </div>
@@ -503,14 +512,13 @@
 
     <script>
         // ================== FIREBASE कॉन्फ़िगरेशन ==================
-        // यहाँ अपना Firebase कॉन्फ़िगरेशन जोड़ें
-        const firebaseConfig = {
-            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
-            authDomain: "test-246af.firebaseapp.com",
-            projectId: "test-246af",
-            storageBucket: "test-246af.firebasestorage.app",
-            messagingSenderId: "1025448533875",
-            appId: "1:1025448533875:web:465de230000c809a1cef06"
+       const firebaseConfig = {
+  apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
+  authDomain: "test-246af.firebaseapp.com",
+  projectId: "test-246af",
+  storageBucket: "test-246af.firebasestorage.app",
+  messagingSenderId: "1025448533875",
+  appId: "1:1025448533875:web:465de230000c809a1cef06",
         };
         
         // Firebase को इनिशियलाइज़ करें
@@ -552,6 +560,8 @@
         const addSampleData = document.getElementById('addSampleData');
         const notification = document.getElementById('notification');
         const existingButtons = document.getElementById('existingButtons');
+        const subtestButtonSelect = document.getElementById('subtestButtonSelect');
+        const existingSubtests = document.getElementById('existingSubtests');
         
         // डेटा लोड करें
         let buttonsData = [];
@@ -573,7 +583,6 @@
         function convertGoogleDriveLink(url) {
             if (!url) return '';
             
-            // अगर यह Google Drive का शेयर लिंक है
             if (url.includes('drive.google.com/file/d/')) {
                 const fileId = url.match(/file\/d\/([^\/]+)/);
                 if (fileId && fileId[1]) {
@@ -581,12 +590,10 @@
                 }
             }
             
-            // अगर यह Google Drive का ID-based लिंक है
             if (url.includes('drive.google.com/uc?id=')) {
                 return url;
             }
             
-            // अगर यह पहले से ही सही फॉर्मेट में है
             return url;
         }
         
@@ -596,7 +603,6 @@
             
             showLoading();
             
-            // रीयल-टाइम लिसनर सेट करें
             unsubscribe = db.collection("buttons").orderBy("order", "asc")
                 .onSnapshot((querySnapshot) => {
                     buttonsData = [];
@@ -605,7 +611,9 @@
                     });
                     renderButtons();
                     updateButtonSelect();
+                    updateSubtestButtonSelect();
                     renderExistingButtons();
+                    renderExistingSubtests();
                 }, (error) => {
                     console.error("Firebase error:", error);
                     showError("डेटा लोड करने में त्रुटि। कृपया कॉन्फ़िगरेशन जांचें।");
@@ -618,12 +626,10 @@
             
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    // User is signed in
                     adminEmail.textContent = user.email;
                     authContainer.style.display = 'none';
                     adminActions.style.display = 'block';
                 } else {
-                    // User is signed out
                     authContainer.style.display = 'block';
                     adminActions.style.display = 'none';
                 }
@@ -742,7 +748,6 @@
                 existingButtons.appendChild(buttonItem);
             });
             
-            // डिलीट बटन के लिए इवेंट लिस्नर जोड़ें
             const deleteButtons = existingButtons.querySelectorAll('.delete-btn');
             deleteButtons.forEach(btn => {
                 btn.addEventListener('click', async (e) => {
@@ -762,6 +767,58 @@
                 option.value = button.id;
                 option.textContent = button.name;
                 buttonSelect.appendChild(option);
+            });
+        }
+        
+        // सबटेस्ट बटन सेलेक्ट अपडेट करें
+        function updateSubtestButtonSelect() {
+            subtestButtonSelect.innerHTML = '<option value="">बटन चुनें</option>';
+            buttonsData.forEach(button => {
+                const option = document.createElement('option');
+                option.value = button.id;
+                option.textContent = button.name;
+                subtestButtonSelect.appendChild(option);
+            });
+        }
+        
+        // मौजूदा सबटेस्ट रेंडर करें
+        function renderExistingSubtests() {
+            existingSubtests.innerHTML = '';
+            
+            const selectedButtonId = subtestButtonSelect.value;
+            if (!selectedButtonId) {
+                existingSubtests.innerHTML = '<p>कृपया एक बटन चुनें</p>';
+                return;
+            }
+            
+            const selectedButton = buttonsData.find(button => button.id === selectedButtonId);
+            if (!selectedButton || !selectedButton.subtests || selectedButton.subtests.length === 0) {
+                existingSubtests.innerHTML = '<p>कोई सबटेस्ट उपलब्ध नहीं है</p>';
+                return;
+            }
+            
+            selectedButton.subtests.forEach((subtest, index) => {
+                const subtestItem = document.createElement('div');
+                subtestItem.className = 'subtest-item-admin';
+                subtestItem.innerHTML = `
+                    <div class="subtest-item-info">
+                        <div class="subtest-item-name">${subtest.name}</div>
+                        <div class="subtest-item-id">लिंक: ${subtest.link}</div>
+                    </div>
+                    <button class="delete-btn" data-button-id="${selectedButtonId}" data-subtest-index="${index}">डिलीट</button>
+                `;
+                existingSubtests.appendChild(subtestItem);
+            });
+            
+            const deleteSubtestButtons = existingSubtests.querySelectorAll('.delete-btn');
+            deleteSubtestButtons.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const buttonId = e.target.getAttribute('data-button-id');
+                    const subtestIndex = parseInt(e.target.getAttribute('data-subtest-index'));
+                    if (confirm('क्या आप वाकई इस सबटेस्ट को डिलीट करना चाहते हैं?')) {
+                        await deleteSubtest(buttonId, subtestIndex);
+                    }
+                });
             });
         }
         
@@ -805,21 +862,47 @@
             }
         }
         
+        // सबटेस्ट डिलीट करें
+        async function deleteSubtest(buttonId, subtestIndex) {
+            if (!db) {
+                showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
+                return;
+            }
+            
+            try {
+                const buttonRef = db.collection("buttons").doc(buttonId);
+                const buttonDoc = await buttonRef.get();
+                
+                if (buttonDoc.exists) {
+                    const buttonData = buttonDoc.data();
+                    const updatedSubtests = buttonData.subtests.filter((_, index) => index !== subtestIndex);
+                    
+                    await buttonRef.update({
+                        subtests: updatedSubtests
+                    });
+                    
+                    showNotification('सबटेस्ट सफलतापूर्वक डिलीट किया गया!');
+                } else {
+                    showNotification('बटन नहीं मिला', false);
+                }
+            } catch (error) {
+                console.error("Error deleting subtest: ", error);
+                showNotification('त्रुटि: सबटेस्ट डिलीट करने में विफल', false);
+            }
+        }
+        
         // इवेंट लिस्नर्स सेटअप करें
         function setupEventListeners() {
-            // एडमिन पैनल टॉगल करें
             adminLoginBtn.addEventListener('click', () => {
                 adminPanel.style.display = 'flex';
             });
             
             closeAdmin.addEventListener('click', () => {
                 adminPanel.style.display = 'none';
-                // रीसेट फॉर्म
                 loginEmail.value = '';
                 loginPassword.value = '';
             });
             
-            // इमेज अपलोड बटन
             buttonImageUploadBtn.addEventListener('click', () => {
                 buttonImageFile.click();
             });
@@ -828,14 +911,13 @@
                 if (e.target.files.length > 0) {
                     selectedImageFile = e.target.files[0];
                     buttonImageFileName.textContent = selectedImageFile.name;
-                    buttonImageUrl.value = ''; // URL फ़ील्ड रीसेट करें
+                    buttonImageUrl.value = '';
                 } else {
                     selectedImageFile = null;
                     buttonImageFileName.textContent = 'कोई फाइल नहीं चुनी गई';
                 }
             });
             
-            // URL फ़ील्ड बदलने पर फ़ाइल चयन रीसेट करें
             buttonImageUrl.addEventListener('input', () => {
                 if (buttonImageUrl.value) {
                     selectedImageFile = null;
@@ -844,7 +926,6 @@
                 }
             });
             
-            // लॉगिन प्रोसेस
             loginBtn.addEventListener('click', () => {
                 if (!loginEmail.value || !loginPassword.value) {
                     showNotification('कृपया ईमेल और पासवर्ड दर्ज करें', false);
@@ -866,7 +947,6 @@
                     });
             });
             
-            // लॉगआउट प्रोसेस
             logoutBtn.addEventListener('click', () => {
                 if (!auth) return;
                 
@@ -880,7 +960,6 @@
                     });
             });
             
-            // नया बटन जोड़ें
             addButton.addEventListener('click', async () => {
                 if (!buttonName.value) {
                     showNotification('कृपया बटन का नाम दर्ज करें', false);
@@ -895,13 +974,10 @@
                 try {
                     let imageUrl = '';
                     
-                    // अगर इमेज फ़ाइल चुनी गई है तो अपलोड करें
                     if (selectedImageFile) {
                         showNotification('इमेज अपलोड हो रही है...');
                         imageUrl = await uploadImage(selectedImageFile);
-                    } 
-                    // अगर URL डाला गया है तो उसे उपयोग करें
-                    else if (buttonImageUrl.value) {
+                    } else if (buttonImageUrl.value) {
                         imageUrl = buttonImageUrl.value;
                     }
                     
@@ -915,7 +991,6 @@
                     await db.collection("buttons").add(newButton);
                     showNotification(`"${buttonName.value}" बटन सफलतापूर्वक जोड़ा गया!`);
                     
-                    // फॉर्म रीसेट
                     buttonName.value = '';
                     buttonImageFile.value = '';
                     buttonImageFileName.textContent = 'कोई फाइल नहीं चुनी गई';
@@ -927,7 +1002,6 @@
                 }
             });
             
-            // सबटेस्ट जोड़ें
             addSubtest.addEventListener('click', async () => {
                 if (!buttonSelect.value || !subtestName.value || !subtestLink.value) {
                     showNotification('कृपया सभी फ़ील्ड भरें', false);
@@ -959,7 +1033,6 @@
                         
                         showNotification(`"${subtestName.value}" सबटेस्ट जोड़ा गया!`);
                         
-                        // फॉर्म रीसेट
                         subtestName.value = '';
                         subtestLink.value = '';
                     } else {
@@ -971,7 +1044,10 @@
                 }
             });
             
-            // नमूना डेटा जोड़ें
+            subtestButtonSelect.addEventListener('change', () => {
+                renderExistingSubtests();
+            });
+            
             addSampleData.addEventListener('click', async () => {
                 if (!db) {
                     showNotification('Firebase कनेक्शन उपलब्ध नहीं है', false);
@@ -1018,7 +1094,6 @@
                         }
                     ];
                     
-                    // पहले मौजूदा डेटा हटाएं
                     const querySnapshot = await db.collection("buttons").get();
                     const deletePromises = [];
                     querySnapshot.forEach((doc) => {
@@ -1027,7 +1102,6 @@
                     
                     await Promise.all(deletePromises);
                     
-                    // नमूना डेटा जोड़ें
                     const addPromises = sampleData.map(data => db.collection("buttons").add(data));
                     await Promise.all(addPromises);
                     
@@ -1039,7 +1113,6 @@
             });
         }
         
-        // पेज अनलोड होने पर लिसनर को हटाएं
         window.addEventListener('beforeunload', () => {
             if (unsubscribe) {
                 unsubscribe();
