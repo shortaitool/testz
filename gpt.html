@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Quiz + Dashboard (Google Sheet Ready)</title>
+  <title>स्मार्ट क्विज़ + डैशबोर्ड</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; display: flex; flex-direction: column; min-height: 100vh; }
     header { background: #4a90e2; color: white; padding: 10px; text-align: center; font-size: 1.3rem; }
@@ -12,13 +12,20 @@
     .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
     .option { padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff; transition: 0.3s; }
     .option:hover { background: #f0f8ff; border-color: #4a90e2; }
-    .footer-buttons { position: fixed; bottom: 15px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 5px; background: white; border-radius: 12px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-    .btn { flex: 1; margin: 5px; padding: 10px; border: 2px solid #4a90e2; background: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.3s; }
-    .btn:hover { background: #4a90e2; color: white; }
+
+    /* नया खूबसूरत फूटर बटन डिज़ाइन */
+    .footer-buttons { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 8px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); gap: 10px; }
+    .btn { flex: 1; padding: 12px; border: 2px solid #4a90e2; background: #fff; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.3s ease; }
+    .btn:hover { background: #4a90e2; color: white; transform: scale(1.05); }
+    .btn:active { transform: scale(0.97); }
+
     .dashboard { display: none; flex-direction: column; align-items: center; padding: 20px; }
     .result-table { border-collapse: collapse; width: 100%; max-width: 600px; margin-top: 10px; }
     .result-table th, .result-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 14px; }
+    .result-table th { background: #4a90e2; color: white; }
     canvas { max-width: 400px; margin: 15px 0; }
+
+    @media(max-width:600px){ .footer-buttons{ bottom:15px; max-width:90%; } }
   </style>
 </head>
 <body>
@@ -30,40 +37,28 @@
     </div>
   </div>
   <div class="footer-buttons">
-    <div class="btn" onclick="prevQuestion()">⟵ Previous</div>
-    <div class="btn" onclick="nextQuestion()">Next ⟶</div>
-    <div class="btn" onclick="submitQuiz()">Submit ✅</div>
+    <div class="btn" onclick="prevQuestion()">⟵ पिछला</div>
+    <div class="btn" onclick="nextQuestion()">अगला ⟶</div>
+    <div class="btn" onclick="submitQuiz()">✅ सबमिट</div>
   </div>
+
   <div class="dashboard" id="dashboard">
     <h2>📊 आपका परिणाम</h2>
     <canvas id="resultChart"></canvas>
     <table class="result-table" id="resultTable">
-      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>
+      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>स्थिति</th></tr>
     </table>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv"; // यहां अपना Google Sheet CSV URL लगाएं
-    let quizData = [];
+    let quizData = [
+      { question: "भारत की राजधानी क्या है?", options: {A:"दिल्ली", B:"मुंबई", C:"कोलकाता", D:"चेन्नई"}, correct: "A" },
+      { question: "सूरज किस दिशा से निकलता है?", options: {A:"उत्तर", B:"पूर्व", C:"पश्चिम", D:"दक्षिण"}, correct: "B" },
+      { question: "भारत का राष्ट्रीय पशु कौन सा है?", options: {A:"शेर", B:"चीता", C:"बाघ", D:"हाथी"}, correct: "C" }
+    ];
     let currentQ = 0;
     let userAnswers = {};
-
-    async function loadQuizData(){
-      try{
-        const res = await fetch(sheetUrl);
-        const csv = await res.text();
-        const rows = csv.split('\n').slice(1).filter(r=>r.trim());
-        quizData = rows.map(r=>{
-          const [question,a,b,c,d,correct] = r.split(',');
-          return {question, options:{A:a,B:b,C:c,D:d}, correct:correct.trim().toUpperCase()};
-        });
-        loadQuestion();
-      }catch(err){
-        console.error('Error fetching sheet:', err);
-        alert('Google Sheet fetch failed. Check URL or permissions');
-      }
-    }
 
     function loadQuestion() {
       const q = quizData[currentQ];
@@ -73,7 +68,7 @@
       for (let key in q.options) {
         let div = document.createElement("div");
         div.className = "option";
-        div.textContent = q.options[key];
+        div.textContent = key+". "+q.options[key];
         div.onclick = () => selectOption(key);
         if (userAnswers[currentQ] === key) div.style.background = "#cce5ff";
         optBox.appendChild(div);
@@ -98,10 +93,11 @@
       quizData.forEach((q, index) => {
         let row = document.createElement("tr");
         let userOpt = userAnswers[index] || "-";
-        if(userOpt === q.correct) correctCount++;
         let userText = userOpt !== "-" ? q.options[userOpt] : "Attempt नहीं किया";
         let correctText = q.options[q.correct];
-        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td>`;
+        let status = userOpt === "-" ? "अनअटेम्प्टेड" : (userOpt === q.correct ? "✅ सही" : "❌ गलत");
+        if(userOpt === q.correct) correctCount++;
+        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td><td>${status}</td>`;
         resultTable.appendChild(row);
       });
       renderChart(correctCount, quizData.length);
@@ -118,7 +114,7 @@
       });
     }
 
-    loadQuizData();
+    loadQuestion();
   </script>
 </body>
 </html>
