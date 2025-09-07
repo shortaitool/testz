@@ -1,203 +1,124 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>राजस्थान ग्रुप डी टेस्ट</title>
-<style>
-:root {--primary:#007bff; --success:#28a745; --danger:#dc3545; --warn:#ffc107;}
-body {font-family:Arial,sans-serif;margin:0;padding:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#f0f4f8;color:#333;}
-header {background:var(--primary);color:white;text-align:center;padding:10px;}
-#timer {font-size:24px;font-weight:bold;text-align:center;padding:10px;background:#fff;border-bottom:1px solid #ddd;}
-#negative-marking {text-align:center;padding:5px;font-style:italic;}
-.question-numbers {display:flex;overflow-x:auto;white-space:nowrap;padding:10px;background:#e9ecef;border-bottom:1px solid #ddd;}
-.question-numbers button {margin:5px;padding:10px 15px;background:#6c757d;color:white;border:none;border-radius:50%;cursor:pointer;min-width:40px;}
-.question-numbers button.active {background:var(--success);}
-.question-numbers button.attempted {background:var(--warn);}
-.question-container {flex:1;overflow-y:auto;padding:20px;background:white;border-radius:8px;margin:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
-.question {font-size:18px;margin-bottom:15px;}
-.option {display:block;margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #ddd;border-radius:5px;cursor:pointer;}
-.option.selected {background:var(--primary);color:white;}
-footer {display:flex;justify-content:space-between;padding:15px 10px 25px; /* footer ऊपर उठाया */ background:var(--primary);color:white;}
-footer button {padding:10px 20px;background:#fff;color:var(--primary);border:1px solid var(--primary);border-radius:5px;cursor:pointer;flex:1;margin:0 5px;}
-footer button:hover {background:var(--primary);color:white;}
-#dashboard {display:none;flex-direction:column;padding:20px;background:#fff;height:100vh;overflow-y:auto;}
-.dashboard-stats {display:flex;justify-content:space-around;flex-wrap:wrap;}
-.stat-card {background:#e9ecef;padding:15px;border-radius:8px;text-align:center;margin:10px;flex:1;min-width:150px;}
-.stat-card h3 {margin:0;color:var(--primary);}
-#score-chart,#history-chart {max-width:400px;margin:0 auto;}
-.results-table {width:100%;border-collapse:collapse;margin-top:20px;}
-.results-table th,.results-table td {border:1px solid #ddd;padding:10px;text-align:left;vertical-align:top;}
-.results-table th {background:var(--primary);color:white;}
-.correct {color:green;}
-.wrong {color:red;}
-@media(max-width:600px){.question-numbers button{padding:8px 12px;min-width:35px;}.dashboard-stats{flex-direction:column;}}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Quiz + Dashboard (Google Sheet Ready)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: #4a90e2; color: white; padding: 10px; text-align: center; font-size: 1.3rem; }
+    .quiz-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
+    .question-box { background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 20px; max-width: 500px; width: 100%; margin-bottom: 10px; }
+    .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .option { padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff; transition: 0.3s; }
+    .option:hover { background: #f0f8ff; border-color: #4a90e2; }
+    .footer-buttons { position: fixed; bottom: 15px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 5px; background: white; border-radius: 12px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    .btn { flex: 1; margin: 5px; padding: 10px; border: 2px solid #4a90e2; background: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.3s; }
+    .btn:hover { background: #4a90e2; color: white; }
+    .dashboard { display: none; flex-direction: column; align-items: center; padding: 20px; }
+    .result-table { border-collapse: collapse; width: 100%; max-width: 600px; margin-top: 10px; }
+    .result-table th, .result-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 14px; }
+    canvas { max-width: 400px; margin: 15px 0; }
+  </style>
 </head>
 <body>
-<header><h1>राजस्थान ग्रुप डी टेस्ट</h1></header>
-<div id="timer">समय शेष: 30:00</div>
-<div id="negative-marking">नेगेटिव मार्किंग: प्रत्येक गलत उत्तर पर 0.25 अंक कटौती</div>
-<div class="question-numbers" id="question-numbers"></div>
-<div class="question-container" id="question-container"></div>
-<footer>
-<button id="prev-btn">पिछला</button>
-<button id="next-btn">अगला</button>
-<button id="submit-btn">टेस्ट सबमिट करें</button>
-</footer>
+  <header>स्मार्ट क्विज़</header>
+  <div class="quiz-container" id="quiz-container">
+    <div class="question-box">
+      <div id="question-text">लोड हो रहा है...</div>
+      <div class="options" id="options"></div>
+    </div>
+  </div>
+  <div class="footer-buttons">
+    <div class="btn" onclick="prevQuestion()">⟵ Previous</div>
+    <div class="btn" onclick="nextQuestion()">Next ⟶</div>
+    <div class="btn" onclick="submitQuiz()">Submit ✅</div>
+  </div>
+  <div class="dashboard" id="dashboard">
+    <h2>📊 आपका परिणाम</h2>
+    <canvas id="resultChart"></canvas>
+    <table class="result-table" id="resultTable">
+      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>
+    </table>
+  </div>
 
-<div id="dashboard">
-<h2>टेस्ट डैशबोर्ड</h2>
-<div class="dashboard-stats">
-<div class="stat-card"><h3 id="total-questions"></h3><p>कुल प्रश्न</p></div>
-<div class="stat-card"><h3 id="attempted"></h3><p>अटेम्प्टेड</p></div>
-<div class="stat-card"><h3 id="unattempted"></h3><p>अनअटेम्प्टेड</p></div>
-<div class="stat-card"><h3 id="correct"></h3><p>सही</p></div>
-<div class="stat-card"><h3 id="wrong"></h3><p>गलत</p></div>
-<div class="stat-card"><h3 id="score"></h3><p>स्कोर</p></div>
-<div class="stat-card"><h3 id="rank"></h3><p>रैंक (सिमुलेटेड)</p></div>
-<div class="stat-card"><h3 id="students-attended"></h3><p>स्टूडेंट्स ने अटेंड किया (सिमुलेटेड)</p></div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv"; // यहां अपना Google Sheet CSV URL लगाएं
+    let quizData = [];
+    let currentQ = 0;
+    let userAnswers = {};
 
-<canvas id="score-chart"></canvas>
+    async function loadQuizData(){
+      try{
+        const res = await fetch(sheetUrl);
+        const csv = await res.text();
+        const rows = csv.split('\n').slice(1).filter(r=>r.trim());
+        quizData = rows.map(r=>{
+          const [question,a,b,c,d,correct] = r.split(',');
+          return {question, options:{A:a,B:b,C:c,D:d}, correct:correct.trim().toUpperCase()};
+        });
+        loadQuestion();
+      }catch(err){
+        console.error('Error fetching sheet:', err);
+        alert('Google Sheet fetch failed. Check URL or permissions');
+      }
+    }
 
-<h3>विस्तृत परिणाम</h3>
-<table class="results-table">
-<thead>
-<tr><th>प्रश्न संख्या</th><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>स्थिति</th></tr>
-</thead>
-<tbody id="results-body"></tbody>
-</table>
+    function loadQuestion() {
+      const q = quizData[currentQ];
+      document.getElementById("question-text").textContent = (currentQ+1)+". "+q.question;
+      const optBox = document.getElementById("options");
+      optBox.innerHTML = "";
+      for (let key in q.options) {
+        let div = document.createElement("div");
+        div.className = "option";
+        div.textContent = q.options[key];
+        div.onclick = () => selectOption(key);
+        if (userAnswers[currentQ] === key) div.style.background = "#cce5ff";
+        optBox.appendChild(div);
+      }
+    }
 
-<h3>टेस्ट हिस्ट्री</h3>
-<canvas id="history-chart"></canvas>
-</div>
+    function selectOption(opt) {
+      userAnswers[currentQ] = opt;
+      loadQuestion();
+    }
 
-<script>
-const sheetUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk/pub?output=csv';
+    function prevQuestion() { if(currentQ>0){ currentQ--; loadQuestion(); } }
+    function nextQuestion() { if(currentQ<quizData.length-1){ currentQ++; loadQuestion(); } }
 
-let questions=[],currentQuestion=0,answers={},timerInterval,timeLeft=30*60,negativeMarking=0.25,testHistory=JSON.parse(localStorage.getItem('testHistory'))||[];
+    function submitQuiz() {
+      document.getElementById("quiz-container").style.display = "none";
+      document.querySelector(".footer-buttons").style.display = "none";
+      const dashboard = document.getElementById("dashboard");
+      dashboard.style.display = "flex";
+      let correctCount = 0;
+      const resultTable = document.getElementById("resultTable");
+      quizData.forEach((q, index) => {
+        let row = document.createElement("tr");
+        let userOpt = userAnswers[index] || "-";
+        if(userOpt === q.correct) correctCount++;
+        let userText = userOpt !== "-" ? q.options[userOpt] : "Attempt नहीं किया";
+        let correctText = q.options[q.correct];
+        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td>`;
+        resultTable.appendChild(row);
+      });
+      renderChart(correctCount, quizData.length);
+    }
 
-async function loadQuestions(){
-try{
-const res=await fetch(sheetUrl);
-const csv=await res.text();
-const rows=csv.split('\n').slice(1).filter(r=>r.trim());
-questions=rows.map(r=>{
-const [num,question,a,b,c,d,correct]=r.split(',');
-return {num,question,options:[a,b,c,d],correct:correct.trim().toUpperCase()};
-});
-renderQuestionNumbers();
-showQuestion(currentQuestion);
-}catch(err){
-console.error('Error fetching CSV:',err);
-alert('Google Sheet fetch failed. Check URL or CORS.');
-}
-}
+    function renderChart(correct, total){
+      const ctx = document.getElementById("resultChart");
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['सही उत्तर','गलत उत्तर'],
+          datasets: [{ data: [correct, total-correct], backgroundColor: ['#4caf50','#f44336'] }]
+        }
+      });
+    }
 
-function renderQuestionNumbers(){
-const container=document.getElementById('question-numbers');
-container.innerHTML='';
-questions.forEach((q,i)=>{
-const btn=document.createElement('button');
-btn.textContent=q.num;
-btn.onclick=()=>{currentQuestion=i;showQuestion(i);}
-if(answers[i]!==undefined)btn.classList.add('attempted');
-container.appendChild(btn);
-});
-updateActiveButton();
-}
-
-function showQuestion(i){
-const container=document.getElementById('question-container');
-const q=questions[i];
-container.innerHTML=`<div class="question">${q.num}. ${q.question}</div>${q.options.map((opt,j)=>{const letters=['A','B','C','D'];return`<div class="option ${answers[i]===j?'selected':''}" onclick="selectOption(${i},${j})">${letters[j]}. ${opt}</div>`;}).join('')}`;
-updateActiveButton();
-}
-
-function selectOption(qIndex,optIndex){answers[qIndex]=optIndex;showQuestion(qIndex);renderQuestionNumbers();}
-function updateActiveButton(){document.querySelectorAll('.question-numbers button').forEach((btn,i)=>{btn.classList.toggle('active',i===currentQuestion);});}
-
-function startTimer(){
-timerInterval=setInterval(()=>{
-timeLeft--;
-const minutes=Math.floor(timeLeft/60);
-const seconds=timeLeft%60;
-const timerEl=document.getElementById('timer');
-timerEl.textContent=`समय शेष: ${minutes}:${seconds<10?'0':''}${seconds}`;
-if(timeLeft<=5*60)timerEl.style.color='red';
-if(timeLeft<=0){clearInterval(timerInterval);submitTest();}
-},1000);
-}
-
-document.getElementById('prev-btn').onclick=()=>{if(currentQuestion>0){currentQuestion--;showQuestion(currentQuestion);}};
-document.getElementById('next-btn').onclick=()=>{if(currentQuestion<questions.length-1){currentQuestion++;showQuestion(currentQuestion);}};
-document.getElementById('submit-btn').onclick=submitTest;
-
-function submitTest(){
-clearInterval(timerInterval);
-document.querySelectorAll('body > *:not(#dashboard)').forEach(el=>el.style.display='none');
-document.getElementById('dashboard').style.display='flex';
-
-let correct=0,wrong=0,attempted=0;
-questions.forEach((q,i)=>{
-if(answers[i]!==undefined){
-attempted++;
-const sel=['A','B','C','D'][answers[i]];
-if(sel===q.correct)correct++; else wrong++;
-}
-});
-const unattempted=questions.length-attempted;
-const score=correct-(wrong*negativeMarking);
-const studentsAttended=Math.floor(Math.random()*100)+100;
-const rank=Math.floor(Math.random()*studentsAttended)+1;
-
-document.getElementById('total-questions').textContent=questions.length;
-document.getElementById('attempted').textContent=attempted;
-document.getElementById('unattempted').textContent=unattempted;
-document.getElementById('correct').textContent=correct;
-document.getElementById('wrong').textContent=wrong;
-document.getElementById('score').textContent=score;
-document.getElementById('rank').textContent=rank;
-document.getElementById('students-attended').textContent=studentsAttended;
-
-// Detailed results (full options)
-const tbody = document.getElementById('results-body');
-tbody.innerHTML = '';
-questions.forEach((q, i) => {
-    const selIndex = answers[i];
-    const selectedText = selIndex !== undefined ? q.options[selIndex] : 'कोई उत्तर नहीं';
-    const correctText = q.options[['A','B','C','D'].indexOf(q.correct)];
-    const status = selIndex !== undefined
-        ? (selectedText === correctText ? '<span class="correct">सही</span>' : '<span class="wrong">गलत</span>')
-        : 'अनअटेम्प्टेड';
-    tbody.innerHTML += `
-        <tr>
-            <td>${q.num}</td>
-            <td>${q.question}</td>
-            <td>${selectedText}</td>
-            <td>${correctText}</td>
-            <td>${status}</td>
-        </tr>
-    `;
-});
-
-// Save history
-testHistory.push({date:new Date().toLocaleString(),score,rank});
-localStorage.setItem('testHistory',JSON.stringify(testHistory));
-
-// Charts
-const ctx=document.getElementById('score-chart').getContext('2d');
-new Chart(ctx,{type:'pie',data:{labels:['सही','गलत','अनअटेम्प्टेड'],datasets:[{data:[correct,wrong,unattempted],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:true,plugins:{legend:{position:'top'},title:{display:true,text:'परिणाम ब्रेकडाउन'}}}});
-
-const ctx2=document.getElementById('history-chart').getContext('2d');
-new Chart(ctx2,{type:'line',data:{labels:testHistory.map(h=>h.date),datasets:[{label:'स्कोर',data:testHistory.map(h=>h.score),borderColor:'#007bff',fill:false,tension:0.3}]}});
-
-}
-
-loadQuestions();
-startTimer();
-</script>
+    loadQuizData();
+  </script>
 </body>
 </html>
