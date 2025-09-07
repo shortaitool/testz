@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>स्मार्ट क्विज़ + डैशबोर्ड</title>
+  <title>Smart Quiz + Dashboard</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; display: flex; flex-direction: column; min-height: 100vh; }
     header { background: #4a90e2; color: white; padding: 10px; text-align: center; font-size: 1.3rem; }
@@ -13,7 +13,6 @@
     .option { padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff; transition: 0.3s; }
     .option:hover { background: #f0f8ff; border-color: #4a90e2; }
 
-    /* नया खूबसूरत फूटर बटन डिज़ाइन */
     .footer-buttons { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 8px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); gap: 10px; }
     .btn { flex: 1; padding: 12px; border: 2px solid #4a90e2; background: #fff; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.3s ease; }
     .btn:hover { background: #4a90e2; color: white; transform: scale(1.05); }
@@ -22,20 +21,28 @@
     .dashboard { display: none; flex-direction: column; align-items: center; padding: 20px; }
     .result-table { border-collapse: collapse; width: 100%; max-width: 600px; margin-top: 10px; }
     .result-table th, .result-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 14px; }
-    .result-table th { background: #4a90e2; color: white; }
     canvas { max-width: 400px; margin: 15px 0; }
+    .history-box { margin-top: 20px; background: #fff; padding: 10px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+    .timer { font-weight: bold; font-size: 1rem; color: #e74c3c; margin-bottom: 10px; }
 
     @media(max-width:600px){ .footer-buttons{ bottom:15px; max-width:90%; } }
   </style>
 </head>
 <body>
-  <header>स्मार्ट क्विज़</header>
+  <header>स्मार्ट क्विज़ - ⏳ <span id="timer">00:00</span></header>
+
   <div class="quiz-container" id="quiz-container">
     <div class="question-box">
       <div id="question-text">लोड हो रहा है...</div>
       <div class="options" id="options"></div>
     </div>
+    <div style="margin-top:10px;">
+      <label>Google Sheet URL:</label>
+      <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTnU5OI-k79BOGjWE5s8K9dDB2svb15EOdLCAnSnIzv6HWcJ20K91dQi47O9vrCTVZji81zU-E6-Nhs/pub?output=csv" style="width:90%; padding:5px;">
+      <button onclick="loadGoogleSheet()">🔄 Load Data</button>
+    </div>
   </div>
+
   <div class="footer-buttons">
     <div class="btn" onclick="prevQuestion()">⟵ पिछला</div>
     <div class="btn" onclick="nextQuestion()">अगला ⟶</div>
@@ -46,19 +53,56 @@
     <h2>📊 आपका परिणाम</h2>
     <canvas id="resultChart"></canvas>
     <table class="result-table" id="resultTable">
-      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>स्थिति</th></tr>
+      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>
     </table>
+    <div class="history-box" id="historyBox">
+      <h3>📜 आपकी हिस्ट्री</h3>
+      <ul id="historyList"></ul>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    let quizData = [
-      { question: "भारत की राजधानी क्या है?", options: {A:"दिल्ली", B:"मुंबई", C:"कोलकाता", D:"चेन्नई"}, correct: "A" },
-      { question: "सूरज किस दिशा से निकलता है?", options: {A:"उत्तर", B:"पूर्व", C:"पश्चिम", D:"दक्षिण"}, correct: "B" },
-      { question: "भारत का राष्ट्रीय पशु कौन सा है?", options: {A:"शेर", B:"चीता", C:"बाघ", D:"हाथी"}, correct: "C" }
-    ];
+    let quizData = [];
     let currentQ = 0;
     let userAnswers = {};
+    let timerInterval;
+    let seconds = 0;
+    let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+
+    function startTimer(){
+      timerInterval = setInterval(()=>{
+        seconds++;
+        let min = String(Math.floor(seconds/60)).padStart(2,'0');
+        let sec = String(seconds%60).padStart(2,'0');
+        document.getElementById("timer").textContent = `${min}:${sec}`;
+      },1000);
+    }
+
+    function loadGoogleSheet(){
+      let url = document.getElementById("sheetUrl").value;
+      if(!url) return alert("URL डालें");
+      fetch(url)
+        .then(res => res.text())
+        .then(csv => {
+          quizData = parseCSV(csv);
+          currentQ = 0; userAnswers = {}; seconds = 0;
+          clearInterval(timerInterval);
+          startTimer();
+          loadQuestion();
+        })
+        .catch(err => alert("Google Sheet से डेटा लोड नहीं हुआ"));
+    }
+
+    function parseCSV(csv){
+      let lines = csv.trim().split(/\n/);
+      let data = [];
+      lines.slice(1).forEach(l=>{
+        let [question,A,B,C,D,correct] = l.split(",");
+        data.push({ question, options:{A,B,C,D}, correct });
+      });
+      return data;
+    }
 
     function loadQuestion() {
       const q = quizData[currentQ];
@@ -68,39 +112,38 @@
       for (let key in q.options) {
         let div = document.createElement("div");
         div.className = "option";
-        div.textContent = key+". "+q.options[key];
+        div.textContent = q.options[key];
         div.onclick = () => selectOption(key);
         if (userAnswers[currentQ] === key) div.style.background = "#cce5ff";
         optBox.appendChild(div);
       }
     }
 
-    function selectOption(opt) {
-      userAnswers[currentQ] = opt;
-      loadQuestion();
-    }
-
+    function selectOption(opt) { userAnswers[currentQ] = opt; loadQuestion(); }
     function prevQuestion() { if(currentQ>0){ currentQ--; loadQuestion(); } }
     function nextQuestion() { if(currentQ<quizData.length-1){ currentQ++; loadQuestion(); } }
 
     function submitQuiz() {
+      clearInterval(timerInterval);
       document.getElementById("quiz-container").style.display = "none";
       document.querySelector(".footer-buttons").style.display = "none";
       const dashboard = document.getElementById("dashboard");
       dashboard.style.display = "flex";
       let correctCount = 0;
       const resultTable = document.getElementById("resultTable");
+      resultTable.innerHTML = `<tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>`;
       quizData.forEach((q, index) => {
         let row = document.createElement("tr");
         let userOpt = userAnswers[index] || "-";
+        if(userOpt === q.correct) correctCount++;
         let userText = userOpt !== "-" ? q.options[userOpt] : "Attempt नहीं किया";
         let correctText = q.options[q.correct];
-        let status = userOpt === "-" ? "अनअटेम्प्टेड" : (userOpt === q.correct ? "✅ सही" : "❌ गलत");
-        if(userOpt === q.correct) correctCount++;
-        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td><td>${status}</td>`;
+        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td>`;
         resultTable.appendChild(row);
       });
       renderChart(correctCount, quizData.length);
+      saveHistory(correctCount, quizData.length);
+      renderHistory();
     }
 
     function renderChart(correct, total){
@@ -114,7 +157,20 @@
       });
     }
 
-    loadQuestion();
+    function saveHistory(correct,total){
+      history.push({date:new Date().toLocaleString(), score:`${correct}/${total}`, time:document.getElementById("timer").textContent});
+      localStorage.setItem('quizHistory', JSON.stringify(history));
+    }
+
+    function renderHistory(){
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "";
+      history.forEach(h=>{
+        let li = document.createElement("li");
+        li.textContent = `${h.date} - स्कोर: ${h.score} - समय: ${h.time}`;
+        historyList.appendChild(li);
+      });
+    }
   </script>
 </body>
 </html>
