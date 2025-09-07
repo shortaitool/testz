@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Quiz + Dashboard</title>
+  <title>स्मार्ट क्विज़ + डैशबोर्ड</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; display: flex; flex-direction: column; min-height: 100vh; }
     header { background: #4a90e2; color: white; padding: 10px; text-align: center; font-size: 1.3rem; }
@@ -13,6 +13,7 @@
     .option { padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff; transition: 0.3s; }
     .option:hover { background: #f0f8ff; border-color: #4a90e2; }
 
+    /* नया खूबसूरत फूटर बटन डिज़ाइन */
     .footer-buttons { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 8px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); gap: 10px; }
     .btn { flex: 1; padding: 12px; border: 2px solid #4a90e2; background: #fff; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.3s ease; }
     .btn:hover { background: #4a90e2; color: white; transform: scale(1.05); }
@@ -21,28 +22,20 @@
     .dashboard { display: none; flex-direction: column; align-items: center; padding: 20px; }
     .result-table { border-collapse: collapse; width: 100%; max-width: 600px; margin-top: 10px; }
     .result-table th, .result-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 14px; }
+    .result-table th { background: #4a90e2; color: white; }
     canvas { max-width: 400px; margin: 15px 0; }
-    .history-box { margin-top: 20px; background: #fff; padding: 10px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
-    .timer { font-weight: bold; font-size: 1rem; color: #e74c3c; margin-bottom: 10px; }
 
     @media(max-width:600px){ .footer-buttons{ bottom:15px; max-width:90%; } }
   </style>
 </head>
 <body>
-  <header>स्मार्ट क्विज़ - ⏳ <span id="timer">00:00</span></header>
-
+  <header>स्मार्ट क्विज़</header>
   <div class="quiz-container" id="quiz-container">
     <div class="question-box">
       <div id="question-text">लोड हो रहा है...</div>
       <div class="options" id="options"></div>
     </div>
-    <div style="margin-top:10px;">
-      <label>Google Sheet URL:</label>
-      <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTnU5OI-k79BOGjWE5s8K9dDB2svb15EOdLCAnSnIzv6HWcJ20K91dQi47O9vrCTVZji81zU-E6-Nhs/pub?output=csv" style="width:90%; padding:5px;">
-      <button onclick="loadGoogleSheet()">🔄 Load Data</button>
-    </div>
   </div>
-
   <div class="footer-buttons">
     <div class="btn" onclick="prevQuestion()">⟵ पिछला</div>
     <div class="btn" onclick="nextQuestion()">अगला ⟶</div>
@@ -53,56 +46,41 @@
     <h2>📊 आपका परिणाम</h2>
     <canvas id="resultChart"></canvas>
     <table class="result-table" id="resultTable">
-      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>
+      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th><th>स्थिति</th></tr>
     </table>
-    <div class="history-box" id="historyBox">
-      <h3>📜 आपकी हिस्ट्री</h3>
-      <ul id="historyList"></ul>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    let quizData = [];
+    let quizData = [
+      { question: "बाबर ने अपनी आत्मकथा किस भाषा में लिखी है?", options: {A:"अरबी", B:"तुर्की", C:"फारसी", D:"उर्दू"}, correct: "B" },
+      { question: "बाबर ने अपनी आत्मकथा किस पुस्तक में लिखी है?", options: {A:"तुजुक-ए-जहाँगीरी", B:"बाबरनामा", C:"अकबरनामा", D:"हुमायूँनामा"}, correct: "B" },
+      { question: "बाबर के वंशजों की राजधानी कहाँ थी?", options: {A:"दिल्ली", B:"काबुल", C:"समरक़न्द", D:"लाहौर"}, correct: "C" },
+      { question: "बाबर के मुस्लिम कानून-नियमों का संग्रह किसमें है?", options: {A:"बाबरनामा", B:"मुबायीन", C:"तुजुक-ए-बाबरी", D:"अकबरनामा"}, correct: "B" },
+      { question: "बाबर की प्रसिद्ध युद्धनीति ‘तुगलकनाम नीति’ का प्रयोग सर्वप्रथम किस युद्ध में हुआ था?", options: {A:"खानवा का युद्ध", B:"पानीपत का प्रथम युद्ध", C:"चंदेरी का युद्ध", D:"घाघरा का युद्ध"}, correct: "B" },
+      { question: "बहुजन समाज की स्थापना किसने की थी?", options: {A:"बाल गंगाधर तिलक", B:"मुकुंदराव पाटिल", C:"गोपाल कृष्ण गोखले", D:"लाला लाजपत राय"}, correct: "B" },
+      { question: "बहुजन समाज की स्थापना कब व कहाँ की गई थी?", options: {A:"1905 ई., पुणे", B:"1910 ई., सतारा", C:"1920 ई., मुंबई", D:"1915 ई., कोल्हापुर"}, correct: "B" },
+      { question: "बहमनी साम्राज्य में सबसे अंत में कौन-सा राज्य स्वतंत्र हुआ था?", options: {A:"बीजापुर", B:"गोलकुंडा", C:"अहमदनगर", D:"बीदर"}, correct: "D" },
+      { question: "बहमनी शासन में कौन रूसी यात्री आया था?", options: {A:"मार्को पोलो", B:"अफानासी निकितिन", C:"इब्न बतूता", D:"फाहियान"}, correct: "B" },
+      { question: "बहमनी शासन को किस शासक ने चरम पर पहुँचाया था?", options: {A:"फिरोज शाह बहमनी", B:"ख़्वाज़ा महमूद गवान", C:"हसन गंगू", D:"अहमद शाह"}, correct: "B" },
+      { question: "बहमनी राज्य में कुल कितने शासक हुए थे?", options: {A:"14", B:"16", C:"18", D:"20"}, correct: "C" },
+      { question: "बहमनी राज्य की स्थापना किसने की थी?", options: {A:"मुहम्मद बिन तुगलक", B:"अलाउद्दीन हसन बहमन शाह", C:"फिरोज शाह", D:"ख़्वाज़ा महमूद गवान"}, correct: "B" },
+      { question: "बहमनी राज्य की मुद्रा क्या थी?", options: {A:"टका", B:"हूण", C:"दीनार", D:"मोहर"}, correct: "B" },
+      { question: "बहमनी राजाओं की राजधानी कहाँ थी?", options: {A:"बीदर", B:"गुलबर्गा", C:"बीजापुर", D:"अहमदनगर"}, correct: "B" },
+      { question: "बनारस संस्कृत विश्वविद्यालय के संस्थापक कौन थे?", options: {A:"वारेन हेस्टिंग्स", B:"लॉर्ड वेलेजली", C:"जोनाथन डंकन", D:"लॉर्ड कर्जन"}, correct: "C" },
+      { question: "बड़ी संख्या में दफनाए गए बच्चों के शवाधान किस संस्कृति से प्राप्त होते है?", options: {A:"हड़प्पा संस्कृति", B:"जोर्वे संस्कृति", C:"कायथा संस्कृति", D:"मालवा संस्कृति"}, correct: "B" },
+      { question: "बड़ा इमामबाड़ा कहाँ स्थित है?", options: {A:"दिल्ली", B:"आगरा", C:"लखनऊ", D:"जयपुर"}, correct: "C" },
+      { question: "बक्सर के युद्ध (1764 ई.) के समय दिल्ली का शासक कौन था?", options: {A:"औरंगजेब", B:"शाह आलम प्रथम", C:"बहादुर शाह जफर", D:"अकबर द्वितीय"}, correct: "B" },
+      { question: "बंगाल से बिहार कब पृथक हुआ था?", options: {A:"1905 ई.", B:"1912 ई.", C:"1920 ई.", D:"1947 ई."}, correct: "B" },
+      { question: "बंगाल विभाजन के विरोध में विद्रोह का संचालन किसने किया था?", options: {A:"बाल गंगाधर तिलक", B:"सुरेंद्रनाथ बैनर्जी", C:"बिपिन चंद्र पाल", D:"लाला लाजपत राय"}, correct: "B" },
+      { question: "बंगाल के पाल वंश का संस्थापक कौन था?", options: {A:"धर्मपाल", B:"गोपाल प्रथम गौड़", C:"देवपाल", D:"महिपाल"}, correct: "B" },
+      { question: "बंगाल का विभाजन कब व किस वायसराय ने किया था?", options: {A:"1905 ई., लॉर्ड मिंटो", B:"1905 ई., लॉर्ड कर्जन", C:"1911 ई., लॉर्ड हार्डिंग", D:"1907 ई., लॉर्ड डलहौजी"}, correct: "B" },
+      { question: "फेबियन आंदोलन का प्रस्तावक कौन था?", options: {A:"एनी बेसेंट", B:"मैडम ब्लावट्स्की", C:"सर सैयद अहमद खान", D:"स्वामी विवेकानंद"}, correct: "A" },
+      { question: "फिनिक्स फॉर्म की स्थापना किसने की थी?", options: {A:"जवाहरलाल नेहरू", B:"महात्मा गाँधी", C:"सुभाष चंद्र बोस", D:"सरदार पटेल"}, correct: "B" },
+      { question: "फ़र्रुख़सियर किसके सहयोग से मुगल बादशाह बना था?", options: {A:"सैय्यद बंधु", B:"मराठों", C:"जाटों", D:"राजपूतों"}, correct: "A" }
+    ];
     let currentQ = 0;
     let userAnswers = {};
-    let timerInterval;
-    let seconds = 0;
-    let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
-
-    function startTimer(){
-      timerInterval = setInterval(()=>{
-        seconds++;
-        let min = String(Math.floor(seconds/60)).padStart(2,'0');
-        let sec = String(seconds%60).padStart(2,'0');
-        document.getElementById("timer").textContent = `${min}:${sec}`;
-      },1000);
-    }
-
-    function loadGoogleSheet(){
-      let url = document.getElementById("sheetUrl").value;
-      if(!url) return alert("URL डालें");
-      fetch(url)
-        .then(res => res.text())
-        .then(csv => {
-          quizData = parseCSV(csv);
-          currentQ = 0; userAnswers = {}; seconds = 0;
-          clearInterval(timerInterval);
-          startTimer();
-          loadQuestion();
-        })
-        .catch(err => alert("Google Sheet से डेटा लोड नहीं हुआ"));
-    }
-
-    function parseCSV(csv){
-      let lines = csv.trim().split(/\n/);
-      let data = [];
-      lines.slice(1).forEach(l=>{
-        let [question,A,B,C,D,correct] = l.split(",");
-        data.push({ question, options:{A,B,C,D}, correct });
-      });
-      return data;
-    }
 
     function loadQuestion() {
       const q = quizData[currentQ];
@@ -112,38 +90,39 @@
       for (let key in q.options) {
         let div = document.createElement("div");
         div.className = "option";
-        div.textContent = q.options[key];
+        div.textContent = key+". "+q.options[key];
         div.onclick = () => selectOption(key);
         if (userAnswers[currentQ] === key) div.style.background = "#cce5ff";
         optBox.appendChild(div);
       }
     }
 
-    function selectOption(opt) { userAnswers[currentQ] = opt; loadQuestion(); }
+    function selectOption(opt) {
+      userAnswers[currentQ] = opt;
+      loadQuestion();
+    }
+
     function prevQuestion() { if(currentQ>0){ currentQ--; loadQuestion(); } }
     function nextQuestion() { if(currentQ<quizData.length-1){ currentQ++; loadQuestion(); } }
 
     function submitQuiz() {
-      clearInterval(timerInterval);
       document.getElementById("quiz-container").style.display = "none";
       document.querySelector(".footer-buttons").style.display = "none";
       const dashboard = document.getElementById("dashboard");
       dashboard.style.display = "flex";
       let correctCount = 0;
       const resultTable = document.getElementById("resultTable");
-      resultTable.innerHTML = `<tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>`;
       quizData.forEach((q, index) => {
         let row = document.createElement("tr");
         let userOpt = userAnswers[index] || "-";
-        if(userOpt === q.correct) correctCount++;
         let userText = userOpt !== "-" ? q.options[userOpt] : "Attempt नहीं किया";
         let correctText = q.options[q.correct];
-        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td>`;
+        let status = userOpt === "-" ? "अनअटेम्प्टेड" : (userOpt === q.correct ? "✅ सही" : "❌ गलत");
+        if(userOpt === q.correct) correctCount++;
+        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td><td>${status}</td>`;
         resultTable.appendChild(row);
       });
       renderChart(correctCount, quizData.length);
-      saveHistory(correctCount, quizData.length);
-      renderHistory();
     }
 
     function renderChart(correct, total){
@@ -157,20 +136,7 @@
       });
     }
 
-    function saveHistory(correct,total){
-      history.push({date:new Date().toLocaleString(), score:`${correct}/${total}`, time:document.getElementById("timer").textContent});
-      localStorage.setItem('quizHistory', JSON.stringify(history));
-    }
-
-    function renderHistory(){
-      const historyList = document.getElementById("historyList");
-      historyList.innerHTML = "";
-      history.forEach(h=>{
-        let li = document.createElement("li");
-        li.textContent = `${h.date} - स्कोर: ${h.score} - समय: ${h.time}`;
-        historyList.appendChild(li);
-      });
-    }
+    loadQuestion();
   </script>
 </body>
 </html>
