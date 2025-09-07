@@ -1,148 +1,531 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>स्मार्ट क्विज़ + डैशबोर्ड</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background: #4a90e2; color: white; padding: 10px; text-align: center; font-size: 1.3rem; }
-    .quiz-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
-    .question-box { background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 20px; max-width: 500px; width: 100%; margin-bottom: 10px; }
-    .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-    .option { padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff; transition: 0.3s; }
-    .option:hover { background: #f0f8ff; border-color: #4a90e2; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>राजस्थान पुलिस कांस्टेबल नया फुल टेस्ट 1</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    /* खूबसूरत फूटर बटन */
-    .footer-buttons { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; padding: 8px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); gap: 10px; }
-    .btn { flex: 1; padding: 12px; border: 2px solid #4a90e2; background: #fff; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.3s ease; }
-    .btn:hover { background: #4a90e2; color: white; transform: scale(1.05); }
-    .btn:active { transform: scale(0.97); }
+        body {
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
 
-    .dashboard { display: none; flex-direction: column; align-items: center; padding: 20px; }
-    .result-table { border-collapse: collapse; width: 100%; max-width: 600px; margin-top: 10px; }
-    .result-table th, .result-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 14px; }
-    canvas { max-width: 400px; margin: 15px 0; }
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
 
-    #timer { font-size: 20px; font-weight: bold; text-align: center; margin: 10px; color: #333; }
-    #negative { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 10px; }
+        .time-display {
+            font-size: 18px;
+            font-weight: bold;
+        }
 
-    @media(max-width:600px){ .footer-buttons{ bottom:15px; max-width:90%; } }
-  </style>
+        .test-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .progress-bar {
+            background: #333;
+            height: 4px;
+            margin: 60px 10px 10px;
+        }
+
+        .progress-fill {
+            background: #4CAF50;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            padding: 20px;
+            margin: 70px 10px 100px;
+            background: #111;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .question-num {
+            font-size: 16px;
+            color: #4CAF50;
+        }
+
+        .score-info {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .score-info span {
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #333;
+        }
+
+        .option.selected {
+            background: #4CAF50;
+            border-color: #45a049;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .option-label {
+            flex: 1;
+        }
+
+        .bottom-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #111;
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .submit-btn {
+            background: #FF9800;
+            color: white;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .dashboard {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .dashboard h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#4CAF50 0deg, #4CAF50 var(--score-deg), #333 var(--score-deg), #333 360deg);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #111;
+            z-index: -1;
+        }
+
+        .result-details {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+
+        .back-btn {
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #f44336;
+        }
+
+        @media (max-width: 480px) {
+            .question-text {
+                font-size: 14px;
+            }
+
+            .option {
+                padding: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>स्मार्ट क्विज़</header>
-  <div id="timer">⏳ लोड हो रहा है...</div>
-  <div id="negative">नेगेटिव मार्किंग: हर गलत उत्तर पर 0.25 अंक कटेंगे</div>
-  <div class="quiz-container" id="quiz-container">
-    <div class="question-box">
-      <div id="question-text">लोड हो रहा है...</div>
-      <div class="options" id="options"></div>
+    <div class="header">
+        <div class="time-display" id="timer">01:30:00</div>
+        <div class="test-title">राजस्थान पुलिस कांस्टेबल नया फुल टेस्ट 1</div>
+        <div></div> <!-- Placeholder for icons -->
     </div>
-  </div>
-  <div class="footer-buttons">
-    <div class="btn" onclick="prevQuestion()">⟵ पिछला</div>
-    <div class="btn" onclick="nextQuestion()">अगला ⟶</div>
-    <div class="btn" onclick="submitQuiz()">✅ सबमिट</div>
-  </div>
 
-  <div class="dashboard" id="dashboard">
-    <h2>📊 आपका परिणाम</h2>
-    <canvas id="resultChart"></canvas>
-    <table class="result-table" id="resultTable">
-      <tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>
-    </table>
-    <h3>⏱ आपकी पिछली कोशिशें</h3>
-    <canvas id="historyChart"></canvas>
-  </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnU5OI-k79BOGjWE5s8K9dDB2svb15EOdLCAnSnIzv6HWcJ20K91dQi47O9vrCTVZji81zU-E6-Nhs/pub?output=csv";
-    let quizData = [], currentQ = 0, userAnswers = {}, timer, timeLeft = 30*60;
-    let history = JSON.parse(localStorage.getItem("quizHistory")) || [];
+    <div id="quizContainer">
+        <div class="loading" id="loading">टेस्ट लोड हो रहा है...</div>
+        <div class="error" id="error" style="display: none;"></div>
+    </div>
 
-    async function loadQuestions(){
-      try{
-        const res = await fetch(sheetUrl);
-        const csv = await res.text();
-        const rows = csv.split("\n").slice(1).filter(r=>r.trim());
-        quizData = rows.map(r=>{
-          const [q, a, b, c, d, correct] = r.split(",");
-          return { question: q, options: {A:a, B:b, C:c, D:d}, correct: correct.trim().toUpperCase() };
+    <div class="bottom-buttons" id="bottomButtons">
+        <button class="btn btn-primary" id="markNext">मार्क & नेक्स्ट</button>
+        <button class="btn btn-secondary" id="clear">क्लियर</button>
+        <button class="btn btn-success" id="saveNext">सेव & नेक्स्ट</button>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <h2>टेस्ट समाप्त!</h2>
+        <div class="score-circle" id="scoreCircle">
+            <span id="scoreText">0</span>
+        </div>
+        <div class="result-details">
+            <div class="detail-row">
+                <span>कुल प्रश्न:</span>
+                <span id="totalQuestions">0</span>
+            </div>
+            <div class="detail-row">
+                <span>सही उत्तर:</span>
+                <span id="correctAnswers">0</span>
+            </div>
+            <div class="detail-row">
+                <span>गलत उत्तर:</span>
+                <span id="wrongAnswers">0</span>
+            </div>
+            <div class="detail-row">
+                <span>अनुत्तरित:</span>
+                <span id="unanswered">0</span>
+            </div>
+            <div class="detail-row" style="font-weight: bold; font-size: 18px;">
+                <span>प्रतिशत:</span>
+                <span id="percentage">0%</span>
+            </div>
+        </div>
+        <button class="back-btn" onclick="location.reload()">नया टेस्ट शुरू करें</button>
+    </div>
+
+    <script>
+        // Google Sheets Configuration - Replace with your sheet details
+        const SHEET_ID = '2PACX-1vQppOP_95PCwlsmJObeL_4yflseXrqQHrEDLGLiUZw5RCPfwbK8qs5OJbUwWD8YEl81ERfxqEeR3aOk'; // e.g., '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
+        const SHEET_NAME = 'data'; // Your sheet name
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+
+        // Quiz Data
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let timerInterval;
+        let timeLeft = 5400; // 90 minutes in seconds (adjust as needed)
+        let totalQuestions = 0;
+        let correctAnswers = 0;
+        let positiveMarks = 1.0;
+        let negativeMarks = -0.25;
+        let unansweredMarks = -0.33;
+
+        // DOM Elements
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const quizContainer = document.getElementById('quizContainer');
+        const progressFill = document.getElementById('progressFill');
+        const timerDisplay = document.getElementById('timer');
+        const markNextBtn = document.getElementById('markNext');
+        const clearBtn = document.getElementById('clear');
+        const saveNextBtn = document.getElementById('saveNext');
+        const dashboard = document.getElementById('dashboard');
+        const bottomButtons = document.getElementById('bottomButtons');
+
+        // Fetch Questions from Google Sheets
+        async function fetchQuestions() {
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                const csvText = await response.text();
+                const parsedData = parseCSV(csvText);
+                questions = parsedData.slice(1); // Skip header row
+                totalQuestions = questions.length;
+                userAnswers = new Array(totalQuestions).fill(null);
+                renderQuestion();
+                startTimer();
+                updateProgress();
+                loading.style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                loading.style.display = 'none';
+                error.textContent = 'डेटा लोड करने में त्रुटि। कृपया Google Sheets ID जांचें।';
+                error.style.display = 'block';
+            }
+        }
+
+        // Parse CSV
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            return lines.map(line => {
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                return values;
+            }).filter(row => row.length > 0);
+        }
+
+        // Assume columns: [Question, OptionA, OptionB, OptionC, OptionD, CorrectAnswer]
+        function getQuestion(index) {
+            const row = questions[index];
+            return {
+                text: row[0],
+                options: [row[1], row[2], row[3], row[4], 'कोई नहीं'],
+                correct: String.fromCharCode(64 + parseInt(row[5])) // Convert 1-5 to A-E
+            };
+        }
+
+        // Render Current Question
+        function renderQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                submitTest();
+                return;
+            }
+
+            const q = getQuestion(currentQuestionIndex);
+            const selected = userAnswers[currentQuestionIndex];
+
+            let optionsHtml = '';
+            const optionLabels = ['A', 'B', 'C', 'D', 'E'];
+            q.options.forEach((opt, i) => {
+                const optLabel = optionLabels[i];
+                const checked = selected === optLabel ? 'checked' : '';
+                optionsHtml += `
+                    <label class="option ${selected === optLabel ? 'selected' : ''}">
+                        <input type="radio" name="option" value="${optLabel}" ${checked} onchange="selectOption('${optLabel}')">
+                        <span class="option-label">${optLabel}. ${opt}</span>
+                    </label>
+                `;
+            });
+
+            quizContainer.innerHTML = `
+                <div class="question-header">
+                    <span class="question-num">प्रश्न ${currentQuestionIndex + 1}</span>
+                    <div class="score-info">
+                        <span>+${positiveMarks}</span>
+                        <span>${negativeMarks}</span>
+                        <span>${unansweredMarks}</span>
+                    </div>
+                </div>
+                <div class="question-text">${q.text}</div>
+                <div class="options-container">${optionsHtml}</div>
+            `;
+        }
+
+        // Select Option
+        function selectOption(label) {
+            userAnswers[currentQuestionIndex] = label;
+            renderQuestion(); // Re-render to update UI
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:00`;
+                if (timeLeft <= 0) {
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        // Button Events
+        markNextBtn.addEventListener('click', () => {
+            if (userAnswers[currentQuestionIndex] !== null) {
+                currentQuestionIndex++;
+                renderQuestion();
+                updateProgress();
+            }
         });
-        document.getElementById("timer").textContent = "⏳ समय शेष: 30:00";
-        startTimer();
-        loadQuestion();
-      }catch(e){
-        document.getElementById("question-text").textContent = "❌ डेटा लोड करने में समस्या!";
-      }
-    }
 
-    function loadQuestion(){
-      const q = quizData[currentQ];
-      document.getElementById("question-text").textContent = (currentQ+1)+". "+q.question;
-      const optBox = document.getElementById("options");
-      optBox.innerHTML = "";
-      for (let key in q.options) {
-        let div = document.createElement("div");
-        div.className = "option";
-        div.textContent = q.options[key];
-        div.onclick = () => selectOption(key);
-        if (userAnswers[currentQ] === key) div.style.background = "#cce5ff";
-        optBox.appendChild(div);
-      }
-    }
+        clearBtn.addEventListener('click', () => {
+            userAnswers[currentQuestionIndex] = null;
+            renderQuestion();
+        });
 
-    function selectOption(opt){ userAnswers[currentQ] = opt; loadQuestion(); }
-    function prevQuestion(){ if(currentQ>0){ currentQ--; loadQuestion(); } }
-    function nextQuestion(){ if(currentQ<quizData.length-1){ currentQ++; loadQuestion(); } }
+        saveNextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            renderQuestion();
+            updateProgress();
+        });
 
-    function startTimer(){
-      timer = setInterval(()=>{
-        timeLeft--;
-        let min = Math.floor(timeLeft/60);
-        let sec = timeLeft % 60;
-        document.getElementById("timer").textContent = `⏳ समय शेष: ${min}:${sec<10?'0':''}${sec}`;
-        if(timeLeft <= 0){ clearInterval(timer); submitQuiz(); }
-      },1000);
-    }
+        // Submit Test
+        function submitTest() {
+            clearInterval(timerInterval);
+            bottomButtons.style.display = 'none';
+            calculateScore();
+            dashboard.style.display = 'block';
+            quizContainer.style.display = 'none';
+        }
 
-    function submitQuiz(){
-      clearInterval(timer);
-      document.getElementById("quiz-container").style.display = "none";
-      document.querySelector(".footer-buttons").style.display = "none";
-      const dashboard = document.getElementById("dashboard");
-      dashboard.style.display = "flex";
-      let correctCount = 0;
-      const resultTable = document.getElementById("resultTable");
-      resultTable.innerHTML = '<tr><th>प्रश्न</th><th>आपका उत्तर</th><th>सही उत्तर</th></tr>';
-      quizData.forEach((q, index) => {
-        let row = document.createElement("tr");
-        let userOpt = userAnswers[index] || "-";
-        if(userOpt === q.correct) correctCount++;
-        let userText = userOpt !== "-" ? q.options[userOpt] : "Attempt नहीं किया";
-        let correctText = q.options[q.correct];
-        row.innerHTML = `<td>${q.question}</td><td>${userText}</td><td>${correctText}</td>`;
-        resultTable.appendChild(row);
-      });
-      history.push({ date: new Date().toLocaleString(), score: correctCount });
-      localStorage.setItem("quizHistory", JSON.stringify(history));
-      renderChart(correctCount, quizData.length);
-      renderHistoryChart();
-    }
+        // Calculate Score
+        function calculateScore() {
+            let correct = 0;
+            let wrong = 0;
+            let unanswered = 0;
 
-    function renderChart(correct,total){
-      const ctx = document.getElementById("resultChart");
-      new Chart(ctx,{type:'doughnut',data:{labels:['सही','गलत'],datasets:[{data:[correct,total-correct],backgroundColor:['#4caf50','#f44336']}]} });
-    }
+            questions.forEach((q, i) => {
+                const userAns = userAnswers[i];
+                const correctAns = getQuestion(i).correct;
+                if (userAns === correctAns) {
+                    correct++;
+                } else if (userAns !== null) {
+                    wrong++;
+                } else {
+                    unanswered++;
+                }
+            });
 
-    function renderHistoryChart(){
-      const ctx2 = document.getElementById("historyChart");
-      new Chart(ctx2,{type:'line',data:{labels:history.map(h=>h.date),datasets:[{label:'स्कोर',data:history.map(h=>h.score),borderColor:'#4a90e2',fill:false,tension:0.3}]} });
-    }
+            correctAnswers = correct;
+            const percentage = Math.round((correct / totalQuestions) * 100);
 
-    loadQuestions();
-  </script>
+            document.getElementById('totalQuestions').textContent = totalQuestions;
+            document.getElementById('correctAnswers').textContent = correct;
+            document.getElementById('wrongAnswers').textContent = wrong;
+            document.getElementById('unanswered').textContent = unanswered;
+            document.getElementById('percentage').textContent = `${percentage}%`;
+
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreDeg = (percentage / 100) * 360;
+            scoreCircle.style.setProperty('--score-deg', `${scoreDeg}deg`);
+            document.getElementById('scoreText').textContent = `${correct}/${totalQuestions}`;
+        }
+
+        // Initialize
+        fetchQuestions();
+    </script>
 </body>
 </html>
