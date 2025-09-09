@@ -6,78 +6,18 @@
   <title>Exam Portal</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      text-align: center;
-      padding: 15px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.03);
-    }
-    .card img {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      margin-bottom: 10px;
-    }
-    .login-box {
-      max-width: 350px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-radius: 15px;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .admin-panel {
-      display: none;
-      padding: 20px;
-    }
-    .admin-panel input, .admin-panel button {
-      margin: 5px;
-      padding: 10px;
-      border-radius: 10px;
-    }
+    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; }
+    header { text-align: center; padding: 15px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); font-size: 20px; font-weight: bold; }
+    .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 20px; }
+    .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; cursor: pointer; transition: transform 0.2s; }
+    .card:hover { transform: scale(1.03); }
+    .card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; }
+    .login-box, .admin-panel { max-width: 350px; margin: 20px auto; background: #fff; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 15px; }
+    .login-box input, .admin-panel input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    .login-box button, .admin-panel button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+    .toast { position: fixed; bottom: 15px; right: 15px; background: #333; color: #fff; padding: 10px 15px; border-radius: 8px; display: none; }
+    .toast.error { background: #d9534f; }
+    .toast.success { background: #28a745; }
   </style>
 </head>
 <body>
@@ -85,9 +25,7 @@
 <header>📚 Exam Portal</header>
 
 <!-- Home Section -->
-<div class="container" id="homeContainer">
-  <!-- Firebase से डाटा आएगा -->
-</div>
+<div class="container" id="homeContainer"></div>
 
 <!-- Admin Login -->
 <div class="login-box" id="loginBox">
@@ -98,15 +36,17 @@
 </div>
 
 <!-- Admin Panel -->
-<div class="admin-panel" id="adminPanel">
+<div class="admin-panel" id="adminPanel" style="display:none;">
   <h3>Admin Panel</h3>
   <input type="text" id="btnTitle" placeholder="Button Title">
-  <input type="text" id="btnImage" placeholder="Image URL">
+  <input type="text" id="btnDrive" placeholder="Google Drive File ID (only)">
   <input type="text" id="btnLink" placeholder="Page Link">
   <button onclick="addButton()">Add Button</button>
   <div id="adminButtons"></div>
   <button onclick="logout()">Logout</button>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
@@ -126,18 +66,31 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
+  function showToast(msg, type = "error") {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = "toast " + type;
+    toast.style.display = "block";
+    setTimeout(() => toast.style.display = "none", 3000);
+  }
+
   async function loadHomeButtons() {
-    const container = document.getElementById("homeContainer");
-    container.innerHTML = "";
-    const querySnapshot = await getDocs(collection(db, "homeButtons"));
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `<img src="${data.image}" alt=""><p>${data.title}</p>`;
-      card.onclick = () => window.location.href = data.link;
-      container.appendChild(card);
-    });
+    try {
+      const container = document.getElementById("homeContainer");
+      container.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "homeButtons"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const imgUrl = `https://drive.google.com/uc?export=view&id=${data.imageId}`;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="${imgUrl}" alt=""><p>${data.title}</p>`;
+        card.onclick = () => window.location.href = data.link;
+        container.appendChild(card);
+      });
+    } catch (e) {
+      showToast("Error loading data: " + e.message, "error");
+    }
   }
 
   window.login = async function() {
@@ -145,43 +98,59 @@
     const password = document.getElementById("password").value;
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      showToast("Login successful!", "success");
     } catch (err) {
-      alert("Login Failed: " + err.message);
+      showToast("Login Failed: " + err.message, "error");
     }
   };
 
   window.logout = async function() {
     await signOut(auth);
+    showToast("Logged out", "success");
   };
 
   window.addButton = async function() {
-    const title = document.getElementById("btnTitle").value;
-    const image = document.getElementById("btnImage").value;
-    const link = document.getElementById("btnLink").value;
-    if (!title || !image || !link) return alert("Fill all fields");
-    await addDoc(collection(db, "homeButtons"), { title, image, link });
-    alert("Button Added!");
-    loadHomeButtons();
-    loadAdminButtons();
+    const title = document.getElementById("btnTitle").value.trim();
+    const imageId = document.getElementById("btnDrive").value.trim();
+    const link = document.getElementById("btnLink").value.trim();
+    if (!title || !imageId || !link) {
+      return showToast("Fill all fields!", "error");
+    }
+    try {
+      await addDoc(collection(db, "homeButtons"), { title, imageId, link });
+      showToast("Button Added!", "success");
+      loadHomeButtons();
+      loadAdminButtons();
+    } catch (e) {
+      showToast("Error adding button: " + e.message, "error");
+    }
   };
 
   async function loadAdminButtons() {
-    const adminDiv = document.getElementById("adminButtons");
-    adminDiv.innerHTML = "";
-    const querySnapshot = await getDocs(collection(db, "homeButtons"));
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const div = document.createElement("div");
-      div.innerHTML = `${data.title} <button onclick="deleteButton('${docSnap.id}')">Delete</button>`;
-      adminDiv.appendChild(div);
-    });
+    try {
+      const adminDiv = document.getElementById("adminButtons");
+      adminDiv.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "homeButtons"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.innerHTML = `${data.title} <button onclick="deleteButton('${docSnap.id}')">Delete</button>`;
+        adminDiv.appendChild(div);
+      });
+    } catch (e) {
+      showToast("Error loading admin data: " + e.message, "error");
+    }
   }
 
   window.deleteButton = async function(id) {
-    await deleteDoc(doc(db, "homeButtons", id));
-    alert("Deleted!");
-    loadHomeButtons();
-    loadAdminButtons();
+    try {
+      await deleteDoc(doc(db, "homeButtons", id));
+      showToast("Deleted!", "success");
+      loadHomeButtons();
+      loadAdminButtons();
+    } catch (e) {
+      showToast("Error deleting: " + e.message, "error");
+    }
   };
 
   onAuthStateChanged(auth, (user) => {
