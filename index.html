@@ -3,472 +3,670 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mock Tests Index + Admin — Rojgar With Ankit Style</title>
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <title>Feature Buttons — Admin Editable</title>
+  <meta name="description" content="Admin editable button list with Firebase backend. Mobile-friendly." />
+  <!-- Firebase (compat) CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <style>
+    /* Basic reset */
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
     :root{
-      --bg: #f6f7fb;
-      --card: #ffffff;
-      --accent: #0b3b66;
-      --muted: #7a8491;
-      --accent-2: #e83e3e;
-      --outline: rgba(11,59,102,0.12);
-      --shadow: 0 6px 18px rgba(11,59,102,0.06);
-      --radius: 14px;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --muted:#6c7280;
+      --accent:#0b3d91;
+      --accent-2:#ff3b30;
+      --outline: rgba(11,61,145,0.12);
+      --glass: rgba(255,255,255,0.6);
     }
-    *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#f6f7fb, #eef3f8);}
-    .app{
-      max-width:760px;margin:18px auto;padding:12px;
+    body{background:linear-gradient(180deg,#f3f6fb,var(--bg));min-height:100vh;color:#0b1330;padding-bottom:80px;}
+    .app {
+      max-width:920px;margin:0 auto;padding:14px;
     }
 
     /* Header */
     header{
-      display:flex;align-items:center;gap:12px;padding:12px;background:transparent;
+      display:flex;align-items:center;gap:12px;padding:6px 2px 14px 2px;
     }
     .back-btn{
-      display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--outline);background:var(--card);box-shadow:var(--shadow);
-      cursor:pointer;transition:transform .12s ease;
+      width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:var(--card);box-shadow:0 4px 14px rgba(12,20,40,0.06);cursor:pointer;border:2px solid transparent;
+      transition:all .2s;
     }
-    .back-btn:active{transform:scale(.97);}
+    .back-btn:active{transform:scale(.96)}
+    h1{font-size:20px;color:var(--accent);font-weight:700;}
+    .share-icon{margin-left:auto;opacity:.9}
 
-    h1{font-size:20px;margin:0;color:var(--accent);font-weight:700;}
-    .header-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
-
-    /* List */
-    .list{margin-top:8px;display:flex;flex-direction:column;gap:12px;padding-bottom:90px;}
+    /* List styles */
+    .list{margin-top:8px;}
     .item{
-      background:var(--card);display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.02);
+      display:flex;align-items:center;gap:16px;background:var(--card);padding:12px;border-radius:10px;
+      margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,40,0.04);border-left:6px solid transparent;
+      transition:transform .18s, box-shadow .18s;
     }
-    .item-thumb{
-      width:72px;height:72px;border-radius:12px;flex:0 0 72px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--outline);
+    .item:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(12,20,40,0.08);}
+    .item-img{
+      width:72px;height:72px;border-radius:50%;overflow:hidden;flex-shrink:0;border:4px solid var(--outline);
+      display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fff,#f0f4ff);
     }
-    .item-thumb img{width:100%;height:100%;object-fit:cover;}
+    .item-img img{width:100%;height:100%;object-fit:cover;}
     .item-content{flex:1;}
-    .title{font-weight:700;color:#0f2840;font-size:16px;line-height:1.15;}
-    .meta{display:flex;gap:10px;align-items:center;margin-top:8px;color:var(--muted);font-size:13px}
-    .share{display:inline-flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);}
+    .item-title{font-weight:800;font-size:16px;color:#0b1330;margin-bottom:6px;}
+    .item-meta{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;}
+    .action-share{cursor:pointer;display:flex;align-items:center;gap:6px}
 
-    /* Admin Panel Button (outline & animated) */
+    /* Subpage header */
+    .subpage{
+      margin-top:8px;
+    }
+    .subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
+    @media (min-width:540px){ .subgrid{grid-template-columns:repeat(3,1fr);} .item-img{width:80px;height:80px;} }
+
+    .sub-btn{
+      background:var(--card);padding:10px;border-radius:12px;display:flex;align-items:center;gap:10px;
+      box-shadow:0 6px 18px rgba(12,20,40,0.04);cursor:pointer;border:2px solid transparent;
+      transition:transform .14s, border-color .14s;
+    }
+    .sub-btn:active{transform:scale(.98)}
+    .sub-btn:focus{outline:none}
+    .sub-thumb{width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--outline);display:flex;align-items:center;justify-content:center}
+    .sub-thumb img{width:100%;height:100%;object-fit:cover;}
+    .sub-title{font-weight:700;color:#14203b;font-size:14px}
+
+    /* Floating admin button */
+    .fab {
+      position:fixed;right:14px;bottom:18px;width:56px;height:56px;border-radius:16px;background:var(--accent);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 14px 36px rgba(11,61,145,0.18);
+      cursor:pointer;border:4px solid rgba(255,255,255,0.06);
+    }
+
+    /* Admin modal / panel */
+    .panel{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,10,20,0.45);z-index:40;padding:18px;
+    }
+    .panel.open{display:flex}
+    .panel-card{width:100%;max-width:880px;background:var(--card);border-radius:12px;padding:18px;box-shadow:0 28px 80px rgba(8,14,30,0.18);overflow:auto;max-height:90vh}
+    .panel-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){.panel-grid{grid-template-columns:360px 1fr}}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="text"], input[type="email"], input[type="password"], textarea, select{
+      width:100%;padding:10px;border-radius:10px;border:1px solid #e6e9f0;background:transparent;font-size:14px;
+    }
     .btn{
-      padding:10px 14px;border-radius:12px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;cursor:pointer;display:inline-flex;gap:8px;align-items:center;
-      transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
-      box-shadow: 0 4px 12px rgba(11,59,102,0.06);
+      display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:2px solid var(--outline);
+      cursor:pointer;font-weight:700;background:transparent;transition:all .18s;
     }
-    .btn:active{transform:scale(.98);}
-    .btn-outline{
-      background:transparent;
-    }
-    .btn-filled{
-      background:var(--accent);color:#fff;border-color:transparent;
-    }
+    .btn.primary{background:linear-gradient(135deg,var(--accent),#1762e6);color:#fff;border-color:transparent;box-shadow:0 8px 28px rgba(11,61,145,0.12)}
+    .btn:active{transform:scale(.98)}
+    .btn.outline{background:transparent}
 
-    /* Floating admin quick button */
-    .fab{
-      position:fixed;right:18px;bottom:18px;z-index:1000;
-      display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#0b3b66,#0a78b5);color:#fff;box-shadow:0 12px 30px rgba(10,55,110,0.18);border:none;
-      cursor:pointer;transition:transform .12s ease;
-    }
-    .fab:active{transform:scale(.96);}
+    .muted-note{font-size:13px;color:var(--muted);margin-top:8px}
 
-    /* Admin modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(8,15,25,0.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:1200;}
-    .modal{width:100%;max-width:720px;background:var(--card);border-radius:16px;padding:18px;box-shadow:0 24px 60px rgba(2,6,23,0.4);border:1px solid rgba(0,0,0,0.04);max-height:90vh;overflow:auto;}
-    .modal .close{margin-left:auto;background:transparent;border:none;font-size:18px;cursor:pointer;color:var(--muted);}
+    /* small controls in admin */
+    .row{display:flex;gap:8px;align-items:center}
+    .row .btn{flex:1}
 
-    form.row{display:flex;gap:8px;flex-wrap:wrap;}
-    label{font-size:13px;color:var(--muted);margin-bottom:6px;display:block;}
-    input[type="text"], input[type="email"], input[type="password"], textarea{
-      width:100%;padding:10px;border-radius:10px;border:1px solid var(--outline);background:#fbfdff;font-size:14px;
-    }
-    .field{flex:1 1 100%;}
-    .field.half{flex:1 1 calc(50% - 8px);}
-
-    /* admin list inside modal */
-    .admin-list{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
-    .admin-row{display:flex;gap:10px;align-items:center;padding:10px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--outline);}
-    .admin-row .small-thumb{width:56px;height:56px;border-radius:8px;overflow:hidden;}
-    .admin-row .small-thumb img{width:100%;height:100%;object-fit:cover;}
-    .admin-row .admin-actions{margin-left:auto;display:flex;gap:8px;}
-
-    /* responsive */
-    @media (max-width:480px){
-      .item-thumb{width:64px;height:64px}
-      .btn{padding:8px 12px;font-size:14px}
-    }
-
-    /* small animations for buttons */
-    .pulse{
+    /* Animated outline for main clickable items */
+    .outline-ring{
       position:relative;
-      overflow:hidden;
+      transition:all .22s;
     }
-    .pulse:after{
-      content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);width:120%;height:120%;background:rgba(11,59,102,0.06);border-radius:inherit;transition:transform .42s cubic-bezier(.2,.9,.3,1);
+    .outline-ring:after{
+      content:"";position:absolute;inset:-6px;border-radius:14px;border:2px solid rgba(11,61,145,0);transition:all .22s;pointer-events:none;
     }
-    .pulse:active:after{transform:translate(-50%,-50%) scale(1);}
+    .outline-ring:active:after{transform:scale(.98);border-color:rgba(11,61,145,0.12)}
+    .outline-ring:hover:after{border-color:rgba(11,61,145,0.08);}
+
+    /* tiny utilities */
+    .flex{display:flex;align-items:center;gap:8px}
+    .right{margin-left:auto}
+    .danger{color:var(--accent-2);font-weight:700}
+    .small{font-size:13px;color:var(--muted)}
+    .hidden{display:none}
+    .center{text-align:center}
+    .divider{height:1px;background:#eef1f8;margin:12px 0;border-radius:2px}
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="app">
     <header>
-      <button class="back-btn" onclick="history.back()"><i class="fa fa-arrow-left"></i></button>
-      <h1>Mock Tests Index</h1>
-
-      <div class="header-right">
-        <button id="adminOpenBtn" class="btn btn-outline pulse"><i class="fa fa-user-shield"></i> Admin</button>
+      <div class="back-btn" id="btnBack" title="Back" onclick="navigate('home')">
+        ←
       </div>
+      <h1 id="pageTitle">Features</h1>
+      <div class="share-icon small" onclick="shareApp()" title="Share">🔗 Share</div>
     </header>
 
-    <section id="listSection" class="list" aria-live="polite">
-      <!-- items will render here -->
+    <!-- MAIN LIST -->
+    <main id="homeView">
+      <div class="list" id="listContainer">
+        <!-- items inserted here -->
+      </div>
+      <div class="muted-note center">ऊपर के बटन एडमिन पैनल से बदल सकते हैं — नीचे वाला बॉक्स दबाएँ Admin के लिए</div>
+    </main>
+
+    <!-- SUBPAGE -->
+    <section id="detailView" class="hidden subpage">
+      <!-- populated dynamically -->
     </section>
 
-    <!-- Floating admin -->
-    <button class="fab" id="fabAdmin" title="Admin (login)"><i class="fa fa-gear"></i></button>
-  </div>
+    <!-- ADMIN PANEL (modal) -->
+    <div id="adminPanel" class="panel" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="panel-card" id="adminCard">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <h2 style="margin:0">Admin Panel</h2>
+          <div class="right small">Login required</div>
+          <div style="margin-left:auto;">
+            <button class="btn" onclick="closeAdmin()">✖</button>
+          </div>
+        </div>
+        <div id="authArea">
+          <!-- Sign in/up -->
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input id="adminEmail" type="email" placeholder="Admin email" />
+            <input id="adminPass" type="password" placeholder="Password" />
+            <button class="btn primary" onclick="adminSignIn()">Login</button>
+          </div>
+          <div class="small muted-note">Note: Admin user should be enabled in Firebase Authentication (Email/Password).</div>
+          <div class="divider"></div>
+        </div>
 
-  <!-- Admin Modal -->
-  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal" role="document">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <h2 style="margin:0;color:var(--accent)">Admin Panel</h2>
-        <button class="close" onclick="closeModal()"><i class="fa fa-times"></i></button>
-      </div>
+        <div id="panelContent" class="hidden">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <button class="btn primary" onclick="showAddMain()">+ नया मुख्य बटन</button>
+            <button class="btn" onclick="signOutAdmin()">Logout</button>
+            <div class="muted-note right">Signed in as <span id="adminAddr"></span></div>
+          </div>
 
-      <div id="authSection" style="margin-top:12px;">
-        <!-- Login form -->
-        <div id="loginForm">
-          <p style="color:var(--muted)">Admin login required. (Use Firebase Email/Password auth)</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <div class="field half">
-              <label>Email</label>
-              <input id="loginEmail" type="email" placeholder="admin@example.com">
+          <div class="panel-grid">
+            <div>
+              <h3>Main Items (dragging not implemented)</h3>
+              <div id="adminItemsList" style="max-height:60vh;overflow:auto;margin-top:8px"></div>
             </div>
-            <div class="field half">
-              <label>Password</label>
-              <input id="loginPass" type="password" placeholder="Password">
-            </div>
-            <div style="width:100%;display:flex;gap:8px;margin-top:8px;">
-              <button class="btn pulse" id="loginBtn"><i class="fa fa-sign-in-alt"></i> Login</button>
-              <button class="btn btn-outline pulse" id="signupBtn" title="Create admin (only initially)"> <i class="fa fa-user-plus"></i> Create</button>
-              <button class="btn btn-outline pulse" onclick="closeModal()">Close</button>
+
+            <div>
+              <h3 id="editorTitle">Editor</h3>
+              <div id="editorArea">
+                <div id="editorForm" class="panel-grid">
+                  <!-- Editor fields -->
+                  <div>
+                    <label>Title</label>
+                    <input id="fldTitle" type="text" />
+                    <label>Image (URL)</label>
+                    <input id="fldImgUrl" type="text" placeholder="https://..." />
+                    <label>Or upload image (optional)</label>
+                    <input id="fldImgFile" type="file" accept="image/*" />
+                    <div class="muted-note">अगर आप upload करते हैं तो system Firebase Storage का use करेगा (यदि configured हो)।</div>
+                  </div>
+
+                  <div>
+                    <label>Order (छोटा => ऊपर)</label>
+                    <input id="fldOrder" type="text" value="0" />
+                    <label>Sub-buttons (title | url)</label>
+                    <div id="subsEditor"></div>
+                    <div style="margin-top:8px">
+                      <div class="row">
+                        <input id="newSubTitle" type="text" placeholder="Sub title" />
+                        <input id="newSubUrl" type="text" placeholder="https:// or #hash" />
+                        <button class="btn" onclick="addSub()">Add Sub</button>
+                      </div>
+                      <div class="muted-note">Sub buttons appear in the item detail page and can open external links or internal hash routes.</div>
+                    </div>
+                    <div style="margin-top:12px" class="row">
+                      <button class="btn primary" onclick="saveItem()">Save</button>
+                      <button class="btn" onclick="clearEditor()">Clear</button>
+                      <button class="btn" onclick="deleteCurrentItem()">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <div class="small muted-note">Firestore collection: <strong>features</strong></div>
             </div>
           </div>
         </div>
 
-        <!-- Logged in admin area -->
-        <div id="adminArea" style="display:none;margin-top:12px;">
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div style="font-weight:700;color:var(--accent)">Logged in as <span id="adminEmailDisplay"></span></div>
-            <button class="btn btn-outline" id="logoutBtn">Logout</button>
-          </div>
-
-          <!-- Add / Edit form -->
-          <div style="margin-top:12px;">
-            <h3 style="margin:0 0 8px 0;">Add / Edit Test</h3>
-            <form id="itemForm" class="row" onsubmit="return false;">
-              <input type="hidden" id="editingId" value="">
-              <div class="field">
-                <label>Title</label>
-                <input id="itemTitle" type="text" placeholder="UP Police SI 2025">
-              </div>
-              <div class="field">
-                <label>Image URL</label>
-                <input id="itemImage" type="text" placeholder="https://.../image.jpg">
-              </div>
-              <div style="width:100%;display:flex;gap:8px;margin-top:6px;">
-                <button id="saveItemBtn" class="btn pulse"><i class="fa fa-save"></i> Save</button>
-                <button id="clearFormBtn" class="btn btn-outline pulse">Clear</button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Admin items list -->
-          <div class="admin-list" id="adminList" style="margin-top:12px;">
-            <!-- admin rows injected -->
-          </div>
-        </div>
       </div>
     </div>
+
+    <!-- Floating admin button -->
+    <div class="fab" title="Admin" onclick="openAdmin()">⚙</div>
+
   </div>
 
-  <!-- Firebase SDKs (compat mode for simpler single-file) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
   <script>
-    /******************************************
-     * IMPORTANT: Replace the firebaseConfig below
-     * with your project's config from Firebase Console
-     ******************************************/
+    /*************** Firebase config *****************/
     const firebaseConfig = {
-       apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
-  authDomain: "test-246af.firebaseapp.com",
-  projectId: "test-246af",
-  storageBucket: "test-246af.firebasestorage.app",
-  messagingSenderId: "1025448533875",
-  appId: "1:1025448533875:web:465de230000c809a1cef06",
+      apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
+      authDomain: "test-246af.firebaseapp.com",
+      projectId: "test-246af",
+      storageBucket: "test-246af.firebasestorage.app",
+      messagingSenderId: "1025448533875",
+      appId: "1:1025448533875:web:465de230000c809a1cef06",
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // UI elements
-    const listSection = document.getElementById('listSection');
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const adminOpenBtn = document.getElementById('adminOpenBtn');
-    const fabAdmin = document.getElementById('fabAdmin');
+    /*************** App State & Routing *****************/
+    let currentView = 'home'; // home | detail | admin
+    let currentItem = null; // firestore doc id
+    const listContainer = document.getElementById('listContainer');
+    const detailView = document.getElementById('detailView');
+    const homeView = document.getElementById('homeView');
+    const pageTitle = document.getElementById('pageTitle');
 
-    const loginBtn = document.getElementById('loginBtn');
-    const signupBtn = document.getElementById('signupBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPass = document.getElementById('loginPass');
-    const adminArea = document.getElementById('adminArea');
-    const loginFormEl = document.getElementById('loginForm');
-    const adminEmailDisplay = document.getElementById('adminEmailDisplay');
-
-    const itemForm = document.getElementById('itemForm');
-    const itemTitle = document.getElementById('itemTitle');
-    const itemImage = document.getElementById('itemImage');
-    const saveItemBtn = document.getElementById('saveItemBtn');
-    const clearFormBtn = document.getElementById('clearFormBtn');
-    const editingId = document.getElementById('editingId');
-    const adminList = document.getElementById('adminList');
-
-    // open modal
-    function openModal(){
-      modalBackdrop.style.display = 'flex';
-    }
-    function closeModal(){
-      modalBackdrop.style.display = 'none';
-    }
-    adminOpenBtn.addEventListener('click', openModal);
-    fabAdmin.addEventListener('click', openModal);
-    modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeModal(); });
-
-    // Auth actions
-    loginBtn.addEventListener('click', async ()=>{
-      const email = loginEmail.value.trim();
-      const pass = loginPass.value;
-      if(!email || !pass){ alert('Email aur Password bharen'); return; }
-      try{
-        await auth.signInWithEmailAndPassword(email, pass);
-      }catch(err){
-        alert('Login error: ' + err.message);
-      }
-    });
-    signupBtn.addEventListener('click', async ()=>{
-      const email = loginEmail.value.trim();
-      const pass = loginPass.value;
-      if(!email || !pass){ alert('Email aur Password bharen'); return; }
-      if(!confirm('Kya aap naya admin account banana chahte hain? (sirf initial setup ke liye)')) return;
-      try{
-        await auth.createUserWithEmailAndPassword(email, pass);
-        alert('Admin account created. Now login.');
-      }catch(err){
-        alert('Signup error: ' + err.message);
-      }
-    });
-    logoutBtn.addEventListener('click', ()=>auth.signOut());
-
-    // Auth state observer
-    auth.onAuthStateChanged(user=>{
-      if(user){
-        // show admin UI
-        loginFormEl.style.display = 'none';
-        adminArea.style.display = 'block';
-        adminEmailDisplay.textContent = user.email;
-        loadAdminList();
-      }else{
-        loginFormEl.style.display = 'block';
-        adminArea.style.display = 'none';
-      }
-    });
-
-    // Load items (public view)
-    async function loadItems(){
-      listSection.innerHTML = '<div style="text-align:center;color:var(--muted);padding:18px;">Loading...</div>';
-      try{
-        const snapshot = await db.collection('tests').orderBy('createdAt','desc').get();
-        renderList(snapshot.docs.map(d=>({id:d.id, ...d.data()})));
-      }catch(err){
-        listSection.innerHTML = '<div style="text-align:center;color:var(--muted);padding:18px;">Error loading data. Check Firebase config + rules.</div>';
-        console.error(err);
-      }
-    }
-
-    function renderList(items){
-      if(items.length === 0){
-        listSection.innerHTML = '<div style="text-align:center;color:var(--muted);padding:18px;">Koi test nahi mila.</div>';
+    window.addEventListener('hashchange', handleHash);
+    function handleHash(){
+      const h = location.hash.replace('#','');
+      if(!h || h.startsWith('home')){ navigate('home'); return; }
+      if(h.startsWith('item:')){
+        const id = h.split(':')[1];
+        openItemDetail(id);
         return;
       }
-      listSection.innerHTML = '';
-      items.forEach(it=>{
-        const div = document.createElement('div'); div.className = 'item';
-        const thumb = document.createElement('div'); thumb.className='item-thumb';
-        const img = document.createElement('img');
-        img.src = it.image || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" fill="%23f2f5f8"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2399a6b2" font-size="24">No Image</text></svg>';
-        thumb.appendChild(img);
-
-        const content = document.createElement('div'); content.className='item-content';
-        const title = document.createElement('div'); title.className='title'; title.textContent = it.title || 'Untitled';
-        const meta = document.createElement('div'); meta.className='meta';
-        const share = document.createElement('div'); share.className='share'; share.innerHTML = '<i class="fa fa-share"></i> Share';
-        share.onclick = ()=> shareItem(it);
-        meta.appendChild(share);
-        content.appendChild(title);
-        content.appendChild(meta);
-
-        div.appendChild(thumb); div.appendChild(content);
-        listSection.appendChild(div);
-      });
+      if(h.startsWith('admin')){ openAdmin(); return; }
     }
-
-    function shareItem(item){
-      const url = location.href; // you can refine to link to specific page
-      const text = item.title + ' — Check this mock test';
-      if(navigator.share){
-        navigator.share({title:item.title,text, url}).catch(()=>{});
-      }else{
-        // fallback: copy link
-        navigator.clipboard?.writeText(url).then(()=> alert('Link copied to clipboard'));
+    function navigate(page){
+      if(page === 'home'){
+        currentView='home';
+        pageTitle.innerText = 'Features';
+        homeView.classList.remove('hidden');
+        detailView.classList.add('hidden');
+        location.hash = 'home';
       }
     }
 
-    // Admin: add/edit/delete
-    saveItemBtn.addEventListener('click', async ()=>{
-      const title = itemTitle.value.trim();
-      const image = itemImage.value.trim();
-      if(!title){ alert('Title bharen'); return; }
-      const id = editingId.value || null;
+    /*************** Render list from Firestore *****************/
+    async function fetchAndRender(){
+      listContainer.innerHTML = '<div class="small muted-note center">Loading…</div>';
       try{
-        if(id){
-          await db.collection('tests').doc(id).update({title, image, updatedAt: firebase.firestore.FieldValue.serverTimestamp()});
-          alert('Updated');
-        }else{
-          await db.collection('tests').add({title, image, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-          alert('Added');
+        const snapshot = await db.collection('features').orderBy('order','asc').get();
+        const docs = snapshot.docs;
+        if(docs.length === 0){
+          listContainer.innerHTML = '<div class="small muted-note center">Koi item nahi mila. Admin se add karein.</div>';
+          return;
         }
-        itemFormReset();
-        loadAdminList(); loadItems();
+        listContainer.innerHTML = '';
+        docs.forEach(doc => {
+          const data = doc.data();
+          const el = createListItem(doc.id, data);
+          listContainer.appendChild(el);
+        });
       }catch(err){
-        alert('Error saving: ' + err.message);
+        console.error(err);
+        listContainer.innerHTML = '<div class="small muted-note center">Error loading data. Check Firebase rules & config.</div>';
+      }
+    }
+
+    function createListItem(id, data){
+      const wrap = document.createElement('div');
+      wrap.className = 'item outline-ring';
+      wrap.onclick = (e) => {
+        // prevent clicks when admin buttons inside clicked
+        if(e.target.closest('.admin-action')) return;
+        location.hash = 'item:' + id;
+      };
+
+      const imgBox = document.createElement('div');
+      imgBox.className = 'item-img';
+      const img = document.createElement('img');
+      img.src = data.image || placeholderForTitle(data.title);
+      img.alt = data.title || 'img';
+      imgBox.appendChild(img);
+
+      const content = document.createElement('div');
+      content.className = 'item-content';
+      const title = document.createElement('div');
+      title.className = 'item-title';
+      title.innerText = data.title || 'Untitled';
+      const meta = document.createElement('div');
+      meta.className = 'item-meta';
+      meta.innerHTML = `<div class="small">सब-बटन: ${ (data.subs||[]).length }</div><div class="small">Order: ${data.order||0}</div>`;
+      content.appendChild(title);
+      content.appendChild(meta);
+
+      const share = document.createElement('div');
+      share.className = 'action-share';
+      share.innerHTML = '🔗 <span class="small">Share</span>';
+      share.onclick = (e) => {
+        e.stopPropagation();
+        shareItem(id, data);
+      };
+
+      wrap.appendChild(imgBox);
+      wrap.appendChild(content);
+      wrap.appendChild(share);
+      return wrap;
+    }
+
+    function placeholderForTitle(title){
+      // simple dataURI or fallback
+      return 'data:image/svg+xml;utf8,'+encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect fill="#f4f7ff" width="100%" height="100%"/><text x="50%" y="50%" font-size="48" text-anchor="middle" fill="#6a7aa1" dy=".35em">${(title||'ICON').slice(0,10)}</text></svg>`
+      );
+    }
+
+    function shareItem(id,data){
+      const url = location.href.split('#')[0] + '#item:' + id;
+      if(navigator.share){
+        navigator.share({title:data.title,text:'Check this item',url});
+      } else {
+        prompt('Share link (copy):', url);
+      }
+    }
+
+    /*************** Detail page for an item *****************/
+    async function openItemDetail(id){
+      pageTitle.innerText = 'Loading…';
+      homeView.classList.add('hidden');
+      detailView.classList.remove('hidden');
+      detailView.innerHTML = '<div class="small muted-note center">Loading item…</div>';
+      try{
+        const doc = await db.collection('features').doc(id).get();
+        if(!doc.exists){ detailView.innerHTML = '<div class="small muted-note center">Item not found.</div>'; pageTitle.innerText='Not found'; return; }
+        const data = doc.data();
+        currentItem = { id, data };
+        renderDetail(id, data);
+      }catch(err){
+        console.error(err);
+        detailView.innerHTML = '<div class="small muted-note center">Error loading item.</div>';
+      }
+    }
+
+    function renderDetail(id, data){
+      pageTitle.innerText = data.title || 'Item';
+      const html = document.createElement('div');
+      html.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:96px;height:96px;border-radius:18px;overflow:hidden;"><img src="${data.image||placeholderForTitle(data.title)}" style="width:100%;height:100%;object-fit:cover;" /></div>
+          <div>
+            <h2 style="margin:0">${escapeHtml(data.title||'Untitled')}</h2>
+            <div class="small muted-note">Order: ${data.order||0} • Sub buttons: ${(data.subs||[]).length}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <h3>Sub Buttons</h3>
+          <div class="subgrid" id="subsGrid"></div>
+        </div>
+      `;
+      detailView.innerHTML = '';
+      detailView.appendChild(html);
+
+      const subsGrid = document.getElementById('subsGrid');
+      const subs = data.subs || [];
+      if(subs.length === 0){
+        subsGrid.innerHTML = '<div class="small muted-note center">No sub buttons added.</div>';
+      } else {
+        subs.forEach(s=>{
+          const sb = document.createElement('div');
+          sb.className = 'sub-btn';
+          sb.onclick = () => { window.open(s.url,'_blank'); }
+          sb.innerHTML = `<div class="sub-thumb"><img src="${s.icon||placeholderForTitle(s.title)}" /></div><div><div class="sub-title">${escapeHtml(s.title)}</div><div class="small muted-note">${escapeHtml(s.url)}</div></div>`;
+          subsGrid.appendChild(sb);
+        });
+      }
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    /*************** Admin functions *****************/
+    const adminPanel = document.getElementById('adminPanel');
+    const panelContent = document.getElementById('panelContent');
+    const authArea = document.getElementById('authArea');
+    const adminAddr = document.getElementById('adminAddr');
+    const adminItemsList = document.getElementById('adminItemsList');
+
+    function openAdmin(){
+      adminPanel.classList.add('open');
+      adminPanel.setAttribute('aria-hidden','false');
+    }
+    function closeAdmin(){
+      adminPanel.classList.remove('open');
+      adminPanel.setAttribute('aria-hidden','true');
+    }
+
+    auth.onAuthStateChanged(user => {
+      if(user){
+        // show admin controls
+        authArea.classList.add('hidden');
+        panelContent.classList.remove('hidden');
+        adminAddr.innerText = user.email || user.uid;
+        loadAdminItems();
+      } else {
+        authArea.classList.remove('hidden');
+        panelContent.classList.add('hidden');
       }
     });
 
-    clearFormBtn.addEventListener('click', (e)=>{ e.preventDefault(); itemFormReset(); });
-
-    function itemFormReset(){
-      editingId.value = '';
-      itemTitle.value = '';
-      itemImage.value = '';
-      saveItemBtn.textContent = ' Save';
-      saveItemBtn.insertAdjacentHTML('afterbegin','<i class="fa fa-save"></i>');
-    }
-
-    async function loadAdminList(){
-      adminList.innerHTML = '<div style="color:var(--muted)">Loading admin items...</div>';
+    async function adminSignIn(){
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass = document.getElementById('adminPass').value;
+      if(!email||!pass){ alert('Email aur password daalein'); return; }
       try{
-        const snapshot = await db.collection('tests').orderBy('createdAt','desc').get();
-        adminList.innerHTML = '';
-        snapshot.docs.forEach(doc=>{
-          const data = {id:doc.id, ...doc.data()};
-          const row = document.createElement('div'); row.className = 'admin-row';
-          const thumb = document.createElement('div'); thumb.className='small-thumb';
-          const img = document.createElement('img'); img.src = data.image || 'https://via.placeholder.com/160x90?text=No+Image';
-          thumb.appendChild(img);
-          const info = document.createElement('div'); info.style.flex='1';
-          info.innerHTML = `<div style="font-weight:700;color:#0e2a45">${escapeHtml(data.title||'Untitled')}</div><div style="font-size:12px;color:var(--muted);margin-top:6px;">ID: ${doc.id}</div>`;
-          const actions = document.createElement('div'); actions.className='admin-actions';
-          const editBtn = document.createElement('button'); editBtn.className='btn btn-outline pulse'; editBtn.innerHTML='<i class="fa fa-edit"></i>';
-          editBtn.onclick = ()=> populateForEdit(doc.id, data);
-          const delBtn = document.createElement('button'); delBtn.className='btn pulse'; delBtn.innerHTML='<i class="fa fa-trash"></i>';
-          delBtn.onclick = ()=> removeItem(doc.id);
-          actions.appendChild(editBtn); actions.appendChild(delBtn);
-
-          row.appendChild(thumb); row.appendChild(info); row.appendChild(actions);
-          adminList.appendChild(row);
-        });
+        await auth.signInWithEmailAndPassword(email,pass);
+        alert('Logged in');
       }catch(err){
-        adminList.innerHTML = '<div style="color:var(--muted)">Error loading admin items</div>';
         console.error(err);
+        // Optionally allow sign up:
+        if(confirm('Login failed: '+err.message + '\nCreate account with these credentials?')){
+          try{
+            await auth.createUserWithEmailAndPassword(email,pass);
+            alert('Account created and signed in.');
+          }catch(e){ alert('Error creating user: '+e.message) }
+        }
       }
     }
 
-    function populateForEdit(id, data){
-      editingId.value = id;
-      itemTitle.value = data.title || '';
-      itemImage.value = data.image || '';
-      saveItemBtn.innerHTML = '<i class="fa fa-save"></i> Update';
-      // ensure admin modal visible
-      openModal();
+    async function signOutAdmin(){
+      await auth.signOut();
+      alert('Signed out');
     }
 
-    async function removeItem(id){
-      if(!confirm('Kya aap sach me is item ko delete karna chahte hain?')) return;
-      try{
-        await db.collection('tests').doc(id).delete();
-        alert('Deleted');
-        loadAdminList(); loadItems();
-      }catch(err){
-        alert('Delete error: ' + err.message);
-      }
+    // Editor state
+    let editingId = null;
+    let editingSubs = [];
+
+    function clearEditor(){
+      editingId = null;
+      editingSubs = [];
+      document.getElementById('fldTitle').value = '';
+      document.getElementById('fldImgUrl').value = '';
+      document.getElementById('fldImgFile').value = '';
+      document.getElementById('fldOrder').value = '0';
+      renderSubsEditor();
+      document.getElementById('editorTitle').innerText = 'Editor';
     }
 
-    // Utility: escapeHtml for safety in admin list rendering
-    function escapeHtml(s){
-      if(!s) return '';
-      return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    function showAddMain(){
+      openAdmin();
+      document.getElementById('editorTitle').innerText = 'New Main Item';
+      clearEditor();
     }
 
-    // Initialize: load items and set up live updates
-    async function init(){
-      // Listen to realtime changes to keep UI in sync
-      db.collection('tests').orderBy('createdAt','desc').onSnapshot(snapshot=>{
-        const items = snapshot.docs.map(d=>({id:d.id, ...d.data()}));
-        renderList(items);
-      }, err=>{
-        console.error('realtime error', err);
-        // fallback to load once
-        loadItems();
+    async function loadAdminItems(){
+      adminItemsList.innerHTML = '<div class="small muted-note">Loading…</div>';
+      const snap = await db.collection('features').orderBy('order','asc').get();
+      adminItemsList.innerHTML = '';
+      snap.docs.forEach(doc=>{
+        const d=doc.data();
+        const el = document.createElement('div');
+        el.className='item';
+        el.style.marginBottom='8px';
+        el.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:60px;height:60px;border-radius:12px;overflow:hidden"><img src="${d.image||placeholderForTitle(d.title)}" style="width:100%;height:100%;object-fit:cover" /></div>
+            <div style="min-width:120px">
+              <div style="font-weight:800">${escapeHtml(d.title)}</div>
+              <div class="small muted-note">Subs: ${ (d.subs||[]).length } • Order:${d.order||0}</div>
+            </div>
+          </div>
+          <div class="admin-action" style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn" onclick="editItem('${doc.id}')">Edit</button>
+            <button class="btn" onclick="confirmDelete('${doc.id}')">Delete</button>
+          </div>
+        `;
+        adminItemsList.appendChild(el);
       });
     }
 
-    init();
+    async function editItem(id){
+      openAdmin();
+      document.getElementById('editorTitle').innerText = 'Edit Item';
+      const doc = await db.collection('features').doc(id).get();
+      if(!doc.exists) { alert('Item not found'); return; }
+      const d = doc.data();
+      editingId = id;
+      editingSubs = d.subs || [];
+      document.getElementById('fldTitle').value = d.title || '';
+      document.getElementById('fldImgUrl').value = d.image || '';
+      document.getElementById('fldOrder').value = d.order || 0;
+      renderSubsEditor();
+    }
 
-    // If you want to deep-link admin page: ?admin=true
-    if(new URLSearchParams(location.search).get('admin') === 'true') openModal();
+    function renderSubsEditor(){
+      const container = document.getElementById('subsEditor');
+      container.innerHTML = '';
+      if(editingSubs.length===0){ container.innerHTML = '<div class="small muted-note">No sub buttons yet.</div>'; return; }
+      editingSubs.forEach((s,idx)=>{
+        const row = document.createElement('div');
+        row.style.display='flex';
+        row.style.alignItems='center';
+        row.style.gap='8px';
+        row.style.marginTop='8px';
+        row.innerHTML = `<div style="flex:1"><input type="text" value="${escapeHtml(s.title)}" data-idx="${idx}" class="sub-title-edit" /></div>
+                         <div style="flex:1"><input type="text" value="${escapeHtml(s.url)}" data-idx="${idx}" class="sub-url-edit" /></div>
+                         <button class="btn" onclick="removeSub(${idx})">Remove</button>`;
+        container.appendChild(row);
+      });
 
-    // Helpful dev hint in console:
-    console.log('%cAdmin panel: open modal with Admin button. Use Firebase Email/Password auth.', 'color:#0b3b66;font-weight:700');
+      // wire up live editing
+      Array.from(container.querySelectorAll('.sub-title-edit')).forEach(input=>{
+        input.oninput = (e)=>{
+          const i = Number(e.target.dataset.idx);
+          editingSubs[i].title = e.target.value;
+        }
+      });
+      Array.from(container.querySelectorAll('.sub-url-edit')).forEach(input=>{
+        input.oninput = (e)=>{
+          const i = Number(e.target.dataset.idx);
+          editingSubs[i].url = e.target.value;
+        }
+      });
+    }
+
+    function addSub(){
+      const t = document.getElementById('newSubTitle').value.trim();
+      const u = document.getElementById('newSubUrl').value.trim();
+      if(!t||!u){ alert('Title aur URL dono daalein'); return; }
+      editingSubs.push({title:t,url:u,icon:placeholderForTitle(t)});
+      document.getElementById('newSubTitle').value=''; document.getElementById('newSubUrl').value='';
+      renderSubsEditor();
+    }
+
+    function removeSub(idx){
+      if(!confirm('Remove this sub button?')) return;
+      editingSubs.splice(idx,1);
+      renderSubsEditor();
+    }
+
+    async function saveItem(){
+      const title = document.getElementById('fldTitle').value.trim();
+      const url = document.getElementById('fldImgUrl').value.trim();
+      const fileInput = document.getElementById('fldImgFile');
+      const order = Number(document.getElementById('fldOrder').value) || 0;
+      if(!title){ alert('Title zaroori hai'); return; }
+
+      // If file selected, try upload to storage
+      let imageUrl = url || '';
+      if(fileInput.files && fileInput.files[0]){
+        try{
+          const f = fileInput.files[0];
+          const fname = 'uploads/' + Date.now() + '_' + f.name;
+          const ref = storage.ref().child(fname);
+          const snap = await ref.put(f);
+          imageUrl = await snap.ref.getDownloadURL();
+        }catch(e){
+          console.warn('Storage upload failed:', e);
+          alert('Image upload failed. You can still provide an image URL.');
+        }
+      }
+
+      const payload = {
+        title,
+        image: imageUrl,
+        order,
+        subs: editingSubs.map(s=>({title:s.title,url:s.url,icon:s.icon||placeholderForTitle(s.title)}))
+      };
+
+      try{
+        if(editingId){
+          await db.collection('features').doc(editingId).set(payload, {merge:true});
+          alert('Updated');
+        } else {
+          await db.collection('features').add(payload);
+          alert('Added');
+        }
+        clearEditor();
+        loadAdminItems();
+        fetchAndRender();
+      }catch(e){
+        console.error(e);
+        alert('Save failed: ' + e.message);
+      }
+    }
+
+    async function confirmDelete(id){
+      if(!confirm('Kya aap is item ko delete karna chahte hain?')) return;
+      try{
+        await db.collection('features').doc(id).delete();
+        alert('Deleted');
+        loadAdminItems();
+        fetchAndRender();
+      }catch(e){
+        console.error(e);
+        alert('Delete failed: '+e.message);
+      }
+    }
+
+    async function deleteCurrentItem(){
+      if(!editingId){ alert('No item selected'); return; }
+      if(!confirm('Delete this item permanently?')) return;
+      await confirmDelete(editingId);
+      clearEditor();
+    }
+
+    /*************** Utilities *****************/
+    function shareApp(){
+      const url = location.href.split('#')[0];
+      if(navigator.share) navigator.share({title:'App',text:'Check this',url});
+      else prompt('Copy link:',url);
+    }
+
+    // initial load
+    fetchAndRender();
+
+    // simple live listener for real-time update (optional)
+    db.collection('features').orderBy('order','asc').onSnapshot(() => {
+      fetchAndRender();
+      if(currentItem && currentItem.id){
+        // refresh detail if open
+        const h = location.hash.replace('#','');
+        if(h === 'item:'+currentItem.id) openItemDetail(currentItem.id);
+      }
+      loadAdminItems().catch(()=>{});
+    });
+
+    // helper: initial route check
+    handleHash();
 
   </script>
-
-  <!--
-    Setup instructions (short):
-    1) Create Firebase project -> enable Authentication (Email/Password).
-    2) Create Firestore database (start in test mode for development).
-    3) Paste your Firebase config in firebaseConfig at top of script.
-    4) Optionally set Firestore rules to allow read for all, write only for authenticated:
-       Example rules (Firestore):
-       service cloud.firestore {
-         match /databases/{database}/documents {
-           match /tests/{docId} {
-             allow read: if true;
-             allow write: if request.auth != null;
-           }
-         }
-       }
-    5) Deploy to Firebase Hosting or upload to any web host.
-    6) Create an admin user once by using the "Create" button in the login form (or create via Firebase Console).
-  -->
 </body>
 </html>
