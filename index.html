@@ -1,181 +1,92 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
-        body{
-            background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);
-            min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;
-        }
-        .container{
-            width:100%;max-width:1200px;background:white;border-radius:15px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.15);overflow:hidden;
-        }
-        .header{
-            background:#1a73e8;color:white;padding:20px;text-align:center;font-size:24px;font-weight:bold;
-        }
-        .login-container{padding:20px;text-align:center;display:none;}
-        .login-form{max-width:400px;margin:0 auto;}
-        .form-group{margin-bottom:15px;text-align:left;}
-        label{display:block;margin-bottom:5px;color:#555;}
-        input{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
-        input:focus{border-color:#1a73e8;outline:none;}
-        button{background:#1a73e8;color:white;border:none;padding:10px 18px;border-radius:6px;
-            cursor:pointer;font-size:16px;transition:0.3s;}
-        button:hover{background:#0d5bba;}
-        .dashboard{padding:20px;display:block;}
-        .button-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;margin-top:20px;}
-        .main-button{background:white;border-radius:10px;padding:20px;text-align:center;
-            box-shadow:0 5px 15px rgba(0,0,0,0.08);cursor:pointer;transition:0.3s;border:2px solid #e0e0e0;}
-        .main-button:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,0,0,0.15);border-color:#1a73e8;}
-        .main-button img{width:60px;height:60px;margin-bottom:10px;}
-        .main-button h3{margin-bottom:8px;}
-        .admin-panel{display:none;padding:20px;margin-top:20px;border-top:1px solid #eee;background:#f9f9f9;border-radius:10px;}
-        .error{color:#d93025;margin-top:10px;display:none;}
-        .success{color:#1e8e3e;margin-top:10px;display:none;}
-        .footer{text-align:center;padding:15px;color:#555;border-top:1px solid #eee;}
-        .admin-login-btn{background:#ff9800;margin-top:15px;}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">प्रशासनिक पैनल</div>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
+        authDomain: "test-246af.firebaseapp.com",
+        projectId: "test-246af",
+        storageBucket: "test-246af.firebasestorage.app",
+        messagingSenderId: "1025448533875",
+        appId: "1:1025448533875:web:465de230000c809a1cef06"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-        <!-- पब्लिक डैशबोर्ड -->
-        <div id="dashboard" class="dashboard">
-            <h2>मुख्य मेनू</h2>
-            <div class="button-grid" id="buttonGrid">
-                <div class="main-button">
-                    <img src="https://cdn-icons-png.flaticon.com/512/206/206875.png">
-                    <h3>UP Police S1 2025</h3>
-                    <p>यूपी पुलिस भर्ती परीक्षा</p>
-                </div>
-                <div class="main-button">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3449/3449599.png">
-                    <h3>SSC CGL Tier-1 2025</h3>
-                    <p>एसएससी सीजीएल परीक्षा</p>
-                </div>
-            </div>
+    const buttonGrid = document.getElementById('buttonGrid');
+    const loginContainer = document.getElementById('loginContainer');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const addButtonBtn = document.getElementById('addButton');
+    const adminSuccess = document.getElementById('adminSuccess');
+    const adminError = document.getElementById('adminError');
 
-            <!-- एडमिन लॉगिन ओपन करने का बटन -->
-            <button class="admin-login-btn" onclick="openAdminLogin()">🔑 एडमिन लॉगिन</button>
-
-            <!-- एडमिन पैनल (लॉगिन के बाद दिखेगा) -->
-            <div class="admin-panel" id="adminPanel">
-                <h2>प्रशासनिक नियंत्रण</h2>
-                <div class="form-group">
-                    <label for="buttonTitle">बटन शीर्षक</label>
-                    <input type="text" id="buttonTitle" placeholder="बटन का शीर्षक दर्ज करें">
-                </div>
-                <div class="form-group">
-                    <label for="buttonDescription">बटन विवरण</label>
-                    <input type="text" id="buttonDescription" placeholder="बटन का विवरण दर्ज करें">
-                </div>
-                <button id="addButton">बटन जोड़ें</button>
-                <button onclick="logoutAdmin()" style="background:#d93025;">लॉगआउट</button>
-                <div id="adminSuccess" class="success">बटन सफलतापूर्वक जोड़ा गया</div>
-                <div id="adminError" class="error">त्रुटि हुई, पुनः प्रयास करें</div>
-            </div>
-        </div>
-
-        <!-- लॉगिन पॉपअप -->
-        <div id="loginContainer" class="login-container">
-            <h2>एडमिन लॉगिन</h2>
-            <div class="login-form">
-                <div class="form-group">
-                    <label for="email">ईमेल</label>
-                    <input type="email" id="email" placeholder="अपना ईमेल दर्ज करें">
-                </div>
-                <div class="form-group">
-                    <label for="password">पासवर्ड</label>
-                    <input type="password" id="password" placeholder="अपना पासवर्ड दर्ज करें">
-                </div>
-                <button id="loginBtn">लॉगिन</button>
-                <div id="loginError" class="error">गलत ईमेल या पासवर्ड</div>
-            </div>
-        </div>
-
-        <div class="footer">© 2025 Admin Panel. सभी अधिकार सुरक्षित</div>
-    </div>
-
-    <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
-            authDomain: "test-246af.firebaseapp.com",
-            projectId: "test-246af",
-            storageBucket: "test-246af.firebasestorage.app",
-            messagingSenderId: "1025448533875",
-            appId: "1:1025448533875:web:465de230000c809a1cef06"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        const loginContainer = document.getElementById('loginContainer');
-        const adminPanel = document.getElementById('adminPanel');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginError = document.getElementById('loginError');
-        const addButtonBtn = document.getElementById('addButton');
-        const adminSuccess = document.getElementById('adminSuccess');
-        const adminError = document.getElementById('adminError');
-
-        // ✅ पेज लोड पर डैशबोर्ड हमेशा विजिबल रहेगा
-        auth.onAuthStateChanged(user => {
-            if (user && user.email === "admin@example.com") {
-                adminPanel.style.display = 'block';
-                loginContainer.style.display = 'none';
-            } else {
-                adminPanel.style.display = 'none';
-            }
+    // ✅ रियलटाइम Firestore लिस्नर
+    function loadButtons() {
+        db.collection('buttons').orderBy('timestamp','desc').onSnapshot(snapshot => {
+            buttonGrid.innerHTML = ''; // पुराना डाटा हटाओ
+            snapshot.forEach(doc => {
+                const btn = doc.data();
+                const div = document.createElement('div');
+                div.classList.add('main-button');
+                div.innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/1023/1023656.png">
+                    <h3>${btn.title}</h3>
+                    <p>${btn.description}</p>
+                `;
+                buttonGrid.appendChild(div);
+            });
         });
+    }
+    loadButtons();
 
-        // एडमिन लॉगिन
-        loginBtn.addEventListener('click', () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    loginError.style.display = 'none';
-                    loginContainer.style.display = 'none';
-                    adminPanel.style.display = 'block';
-                })
-                .catch(() => loginError.style.display = 'block');
-        });
-
-        // नया बटन ऐड करना
-        addButtonBtn.addEventListener('click', () => {
-            const title = document.getElementById('buttonTitle').value;
-            const description = document.getElementById('buttonDescription').value;
-            if (title && description) {
-                db.collection('buttons').add({
-                    title: title,
-                    description: description,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    adminSuccess.style.display = 'block';
-                    adminError.style.display = 'none';
-                    setTimeout(() => adminSuccess.style.display = 'none', 3000);
-                }).catch(() => {
-                    adminError.style.display = 'block';
-                });
-            }
-        });
-
-        function openAdminLogin() {
-            loginContainer.style.display = 'block';
-        }
-
-        function logoutAdmin() {
-            auth.signOut();
+    // ✅ यूज़र लॉगिन स्टेटस चेक
+    auth.onAuthStateChanged(user => {
+        if (user && user.email === "admin@example.com") {
+            adminPanel.style.display = 'block';
+            loginContainer.style.display = 'none';
+        } else {
             adminPanel.style.display = 'none';
         }
-    </script>
-</body>
-</html>
+    });
+
+    // ✅ एडमिन लॉगिन
+    loginBtn.addEventListener('click', () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                loginError.style.display = 'none';
+                loginContainer.style.display = 'none';
+                adminPanel.style.display = 'block';
+            })
+            .catch(() => loginError.style.display = 'block');
+    });
+
+    // ✅ नया बटन Firestore में सेव करना
+    addButtonBtn.addEventListener('click', () => {
+        const title = document.getElementById('buttonTitle').value;
+        const description = document.getElementById('buttonDescription').value;
+        if (title && description) {
+            db.collection('buttons').add({
+                title: title,
+                description: description,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                adminSuccess.style.display = 'block';
+                adminError.style.display = 'none';
+                setTimeout(() => adminSuccess.style.display = 'none', 3000);
+            }).catch(() => {
+                adminError.style.display = 'block';
+            });
+        }
+    });
+
+    function openAdminLogin() {
+        loginContainer.style.display = 'block';
+    }
+
+    function logoutAdmin() {
+        auth.signOut();
+        adminPanel.style.display = 'none';
+    }
+</script>
