@@ -1,92 +1,428 @@
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
-        authDomain: "test-246af.firebaseapp.com",
-        projectId: "test-246af",
-        storageBucket: "test-246af.firebasestorage.app",
-        messagingSenderId: "1025448533875",
-        appId: "1:1025448533875:web:465de230000c809a1cef06"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ऑल जॉब टेस्ट</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: linear-gradient(135deg, #e0e7ff, #c3dafe); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container {
+            width: 95%; max-width: 450px; background: #fff;
+            padding: 25px; border-radius: 20px;
+            box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
+            transition: all 0.4s ease;
+        }
+        h2 { text-align: center; margin-bottom: 20px; color: #1e3a8a; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .card {
+            background: linear-gradient(145deg, #ffffff, #e6e6e6); 
+            border: 2px solid #bfdbfe; border-radius: 15px;
+            overflow: hidden; cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+        .card:hover { transform: scale(1.07); box-shadow: 0px 8px 16px rgba(0,0,0,0.25); }
+        .card img { width: 100%; height: 120px; object-fit: cover; }
+        .card-text { padding: 12px; font-weight: bold; font-size: 1.2rem; color: #1e40af; }
+        .hidden { display: none; }
+        .slide { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+        .btn {
+            padding: 15px; border: 2px solid #1e40af; border-radius: 12px;
+            text-align: center; font-size: 1.1rem; cursor: pointer;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6); 
+            transition: all 0.3s ease; color: #1e40af;
+        }
+        .btn:hover { background: #1e40af; color: white; transform: scale(1.05); }
+        .back-btn {
+            margin-bottom: 15px; background: #ef4444; color: white;
+            border: none; padding: 12px; border-radius: 10px;
+            cursor: pointer; width: 100%; transition: 0.3s;
+        }
+        .back-btn:hover { background: #dc2626; transform: scale(1.03); }
+        /* Admin Panel */
+        .admin-panel { display: flex; flex-direction: column; gap: 12px; }
+        .admin-panel input { 
+            padding: 10px; border: 1px solid #bfdbfe; border-radius: 10px; 
+            width: 100%; font-size: 1rem; 
+        }
+        .admin-panel input:focus { outline: none; border-color: #1e40af; }
+        .save-btn {
+            background: #10b981; color: white; border: none;
+            padding: 12px; border-radius: 10px; cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .save-btn:hover { background: #059669; }
+        .delete-btn {
+            background: #ef4444; color: white; border: none;
+            padding: 8px; border-radius: 8px; cursor: pointer;
+            margin-top: 5px;
+        }
+        .delete-btn:hover { background: #dc2626; }
+        .add-btn {
+            background: #3b82f6; color: white; border: none;
+            padding: 12px; border-radius: 10px; cursor: pointer;
+            margin-top: 15px;
+        }
+        .add-btn:hover { background: #2563eb; }
+        .editor-section { border: 1px solid #ccc; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        .nested-editor { margin-left: 20px; margin-top: 10px; border-left: 2px solid #bfdbfe; padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
 
-    const buttonGrid = document.getElementById('buttonGrid');
-    const loginContainer = document.getElementById('loginContainer');
-    const adminPanel = document.getElementById('adminPanel');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginError = document.getElementById('loginError');
-    const addButtonBtn = document.getElementById('addButton');
-    const adminSuccess = document.getElementById('adminSuccess');
-    const adminError = document.getElementById('adminError');
+        <!-- Slide 1 with Images -->
+        <div id="slide1" class="slide">
+            <h2 id="mainTitle">ऑल जॉब टेस्ट</h2>
+            <div id="cardsGrid" class="grid">
+                <!-- Cards will be dynamically added here -->
+            </div>
+            <br>
+            <button class="btn" onclick="openAdminLogin()">🔑 एडमिन पैनल</button>
+        </div>
 
-    // ✅ रियलटाइम Firestore लिस्नर
-    function loadButtons() {
-        db.collection('buttons').orderBy('timestamp','desc').onSnapshot(snapshot => {
-            buttonGrid.innerHTML = ''; // पुराना डाटा हटाओ
-            snapshot.forEach(doc => {
-                const btn = doc.data();
+        <!-- Slide 2 -->
+        <div id="slide2" class="slide hidden">
+            <button class="back-btn" onclick="openSlide(1)">⬅ वापस जाएं</button>
+            <h2 id="partTitle"></h2>
+            <div id="partsGrid" class="grid" style="grid-template-columns: 1fr;">
+                <!-- Parts will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div id="slide3" class="slide hidden">
+            <button class="back-btn" onclick="openSlide(2)">⬅ वापस जाएं</button>
+            <h2 id="testTitle"></h2>
+            <div id="testsGrid" class="grid" style="grid-template-columns: 1fr;">
+                <!-- Tests will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="adminLogin" class="slide hidden">
+            <button class="back-btn" onclick="openSlide(1)">⬅ वापस जाएं</button>
+            <h2>Admin Login</h2>
+            <input type="password" id="adminPass" placeholder="पासवर्ड डालें">
+            <button class="save-btn" onclick="checkAdmin()">Login</button>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="slide hidden">
+            <button class="back-btn" onclick="openSlide(1)">⬅ बाहर निकलें</button>
+            <h2>Admin Panel</h2>
+            <div class="admin-panel">
+                <!-- Main Title -->
+                <input type="text" id="editMainTitle" placeholder="Main Title (e.g., ऑल जॉब टेस्ट)">
+
+                <!-- Cards Editor -->
+                <h3>मुख्य कार्ड्स संपादित करें</h3>
+                <div id="cardsEditor">
+                    <!-- Dynamic card editors will be added here -->
+                </div>
+                <button class="add-btn" onclick="addNewCard()">नया कार्ड जोड़ें</button>
+
+                <button class="save-btn" onclick="saveChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0ZKcpIQEnBXHzPsfVNlwdL9Y-iJ4diZY",
+            authDomain: "test-246af.firebaseapp.com",
+            projectId: "test-246af",
+            storageBucket: "test-246af.firebasestorage.app",
+            messagingSenderId: "1025448533875",
+            appId: "1:1025448533875:web:465de230000c809a1cef06",
+            measurementId: "G-JGJ6GMH73L"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentCardId = null;
+        let currentPartId = null;
+        const ADMIN_PASSWORD = "12345"; // नोट: प्रोडक्शन में पासवर्ड को सर्वर-साइड स्टोर करें
+
+        // Data structure (loaded from Firebase)
+        let data = {
+            mainTitle: 'ऑल जॉब टेस्ट',
+            cards: []
+        };
+
+        function openSlide(slideNumber, title="", id=null) {
+            document.querySelectorAll('.slide').forEach(slide => slide.classList.add('hidden'));
+            if(slideNumber === 2) {
+                document.getElementById('partTitle').innerText = title;
+                currentCardId = id;
+                renderParts(id);
+            }
+            if(slideNumber === 3) {
+                document.getElementById('testTitle').innerText = title;
+                currentPartId = id;
+                renderTests(currentCardId, id);
+            }
+            document.getElementById('slide' + slideNumber).classList.remove('hidden');
+        }
+
+        function openAdminLogin() {
+            document.querySelectorAll('.slide').forEach(slide => slide.classList.add('hidden'));
+            document.getElementById('adminLogin').classList.remove('hidden');
+        }
+
+        function checkAdmin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === ADMIN_PASSWORD){
+                document.querySelectorAll('.slide').forEach(slide => slide.classList.add('hidden'));
+                document.getElementById('adminPanel').classList.remove('hidden');
+                renderAdminEditors();
+            } else {
+                alert("गलत पासवर्ड!");
+            }
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            data.cards.forEach(card => {
                 const div = document.createElement('div');
-                div.classList.add('main-button');
+                div.className = 'card';
+                div.onclick = () => openSlide(2, card.name, card.id);
                 div.innerHTML = `
-                    <img src="https://cdn-icons-png.flaticon.com/512/1023/1023656.png">
-                    <h3>${btn.title}</h3>
-                    <p>${btn.description}</p>
+                    <img src="${card.img}" alt="Image ${card.id}">
+                    <div class="card-text">${card.name}</div>
                 `;
-                buttonGrid.appendChild(div);
-            });
-        });
-    }
-    loadButtons();
-
-    // ✅ यूज़र लॉगिन स्टेटस चेक
-    auth.onAuthStateChanged(user => {
-        if (user && user.email === "admin@example.com") {
-            adminPanel.style.display = 'block';
-            loginContainer.style.display = 'none';
-        } else {
-            adminPanel.style.display = 'none';
-        }
-    });
-
-    // ✅ एडमिन लॉगिन
-    loginBtn.addEventListener('click', () => {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                loginError.style.display = 'none';
-                loginContainer.style.display = 'none';
-                adminPanel.style.display = 'block';
-            })
-            .catch(() => loginError.style.display = 'block');
-    });
-
-    // ✅ नया बटन Firestore में सेव करना
-    addButtonBtn.addEventListener('click', () => {
-        const title = document.getElementById('buttonTitle').value;
-        const description = document.getElementById('buttonDescription').value;
-        if (title && description) {
-            db.collection('buttons').add({
-                title: title,
-                description: description,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                adminSuccess.style.display = 'block';
-                adminError.style.display = 'none';
-                setTimeout(() => adminSuccess.style.display = 'none', 3000);
-            }).catch(() => {
-                adminError.style.display = 'block';
+                grid.appendChild(div);
             });
         }
-    });
 
-    function openAdminLogin() {
-        loginContainer.style.display = 'block';
-    }
+        function renderParts(cardId) {
+            const grid = document.getElementById('partsGrid');
+            grid.innerHTML = '';
+            const card = data.cards.find(c => c.id === cardId);
+            if (card && card.parts) {
+                card.parts.forEach(part => {
+                    const div = document.createElement('div');
+                    div.className = 'btn';
+                    div.onclick = () => openSlide(3, part.name, part.id);
+                    div.innerText = part.name;
+                    grid.appendChild(div);
+                });
+            }
+        }
 
-    function logoutAdmin() {
-        auth.signOut();
-        adminPanel.style.display = 'none';
-    }
-</script>
+        function renderTests(cardId, partId) {
+            const grid = document.getElementById('testsGrid');
+            grid.innerHTML = '';
+            const card = data.cards.find(c => c.id === cardId);
+            if (card) {
+                const part = card.parts.find(p => p.id === partId);
+                if (part && part.tests) {
+                    part.tests.forEach(test => {
+                        const a = document.createElement('a');
+                        a.href = test.href;
+                        a.className = 'btn';
+                        a.innerText = test.name;
+                        grid.appendChild(a);
+                    });
+                }
+            }
+        }
+
+        function renderAdminEditors() {
+            // Main Title
+            document.getElementById('editMainTitle').value = data.mainTitle;
+
+            // Cards Editor
+            const cardsEditor = document.getElementById('cardsEditor');
+            cardsEditor.innerHTML = '';
+            data.cards.forEach(card => {
+                const cardEditor = document.createElement('div');
+                cardEditor.className = 'editor-section';
+                cardEditor.innerHTML = `
+                    <input type="text" id="editCardName${card.id}" placeholder="Card Name" value="${card.name}">
+                    <input type="text" id="editCardImg${card.id}" placeholder="Card Image URL" value="${card.img}">
+                    <button class="delete-btn" onclick="deleteCard(${card.id})">डिलीट कार्ड</button>
+                    <div class="nested-editor">
+                        <h4>पार्ट्स</h4>
+                        <div id="partsEditor${card.id}"></div>
+                        <button class="add-btn" onclick="addNewPart(${card.id})">नया पार्ट जोड़ें</button>
+                    </div>
+                `;
+                cardsEditor.appendChild(cardEditor);
+
+                // Render parts for this card
+                const partsEditor = cardEditor.querySelector(`#partsEditor${card.id}`);
+                card.parts.forEach(part => {
+                    const partEditor = document.createElement('div');
+                    partEditor.className = 'editor-section';
+                    partEditor.innerHTML = `
+                        <input type="text" id="editPartName${card.id}_${part.id}" placeholder="Part Name" value="${part.name}">
+                        <button class="delete-btn" onclick="deletePart(${card.id}, ${part.id})">डिलीट पार्ट</button>
+                        <div class="nested-editor">
+                            <h4>टेस्ट्स</h4>
+                            <div id="testsEditor${card.id}_${part.id}"></div>
+                            <button class="add-btn" onclick="addNewTest(${card.id}, ${part.id})">नया टेस्ट जोड़ें</button>
+                        </div>
+                    `;
+                    partsEditor.appendChild(partEditor);
+
+                    // Render tests for this part
+                    const testsEditor = partEditor.querySelector(`#testsEditor${card.id}_${part.id}`);
+                    part.tests.forEach(test => {
+                        const testEditor = document.createElement('div');
+                        testEditor.className = 'editor-section';
+                        testEditor.innerHTML = `
+                            <input type="text" id="editTestName${card.id}_${part.id}_${test.id}" placeholder="Test Name" value="${test.name}">
+                            <input type="text" id="editTestHref${card.id}_${part.id}_${test.id}" placeholder="Test Link" value="${test.href}">
+                            <button class="delete-btn" onclick="deleteTest(${card.id}, ${part.id}, ${test.id})">डिलीट टेस्ट</button>
+                        `;
+                        testsEditor.appendChild(testEditor);
+                    });
+                });
+            });
+        }
+
+        function addNewCard() {
+            const newId = data.cards.length ? Math.max(...data.cards.map(c => c.id)) + 1 : 1;
+            data.cards.push({id: newId, name: `New Card ${newId}`, img: 'https://drive.google.com/uc?export=view&id=DEFAULT_IMAGE_ID', parts: []});
+            renderAdminEditors();
+        }
+
+        function deleteCard(cardId) {
+            data.cards = data.cards.filter(c => c.id !== cardId);
+            renderAdminEditors();
+        }
+
+        function addNewPart(cardId) {
+            const card = data.cards.find(c => c.id === cardId);
+            if (card) {
+                const newId = card.parts.length ? Math.max(...card.parts.map(p => p.id)) + 1 : 1;
+                card.parts.push({id: newId, name: `New Part ${newId}`, tests: []});
+                renderAdminEditors();
+            }
+        }
+
+        function deletePart(cardId, partId) {
+            const card = data.cards.find(c => c.id === cardId);
+            if (card) {
+                card.parts = card.parts.filter(p => p.id !== partId);
+                renderAdminEditors();
+            }
+        }
+
+        function addNewTest(cardId, partId) {
+            const card = data.cards.find(c => c.id === cardId);
+            if (card) {
+                const part = card.parts.find(p => p.id === partId);
+                if (part) {
+                    const newId = part.tests.length ? Math.max(...part.tests.map(t => t.id)) + 1 : 1;
+                    part.tests.push({id: newId, name: `New Test ${newId}`, href: 'newtest.html'});
+                    renderAdminEditors();
+                }
+            }
+        }
+
+        function deleteTest(cardId, partId, testId) {
+            const card = data.cards.find(c => c.id === cardId);
+            if (card) {
+                const part = card.parts.find(p => p.id === partId);
+                if (part) {
+                    part.tests = part.tests.filter(t => t.id !== testId);
+                    renderAdminEditors();
+                }
+            }
+        }
+
+        function saveChanges() {
+            // Save Main Title
+            const newMainTitle = document.getElementById('editMainTitle').value;
+            if (newMainTitle) data.mainTitle = newMainTitle;
+            document.getElementById('mainTitle').innerText = data.mainTitle;
+
+            // Save Cards, Parts, Tests
+            data.cards.forEach(card => {
+                const newCardName = document.getElementById(`editCardName${card.id}`).value;
+                const newCardImg = document.getElementById(`editCardImg${card.id}`).value;
+                if (newCardName) card.name = newCardName;
+                if (newCardImg) card.img = newCardImg;
+
+                card.parts.forEach(part => {
+                    const newPartName = document.getElementById(`editPartName${card.id}_${part.id}`).value;
+                    if (newPartName) part.name = newPartName;
+
+                    part.tests.forEach(test => {
+                        const newTestName = document.getElementById(`editTestName${card.id}_${part.id}_${test.id}`).value;
+                        const newTestHref = document.getElementById(`editTestHref${card.id}_${part.id}_${test.id}`).value;
+                        if (newTestName) test.name = newTestName;
+                        if (newTestHref) test.href = newTestHref;
+                    });
+                });
+            });
+
+            // Save to Firebase
+            database.ref('/').set(data).then(() => {
+                alert("Changes Saved to Firebase!");
+                renderCards();
+                openSlide(1);
+            }).catch(error => {
+                console.error("Error saving to Firebase:", error);
+                alert("Failed to save changes!");
+            });
+        }
+
+        // Load and render from Firebase on start
+        window.onload = () => {
+            database.ref('/').on('value', snapshot => {
+                const firebaseData = snapshot.val();
+                if (firebaseData) {
+                    data = firebaseData;
+                } else {
+                    // Default data if Firebase is empty
+                    data = {
+                        mainTitle: 'ऑल जॉब टेस्ट',
+                        cards: [
+                            {
+                                id: 1, 
+                                name: '1', 
+                                img: 'https://drive.google.com/uc?export=view&id=YOUR_IMAGE_ID_1',
+                                parts: [
+                                    {id: 1, name: 'A PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]},
+                                    {id: 2, name: 'B PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]},
+                                    {id: 3, name: 'C PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]},
+                                    {id: 4, name: 'D PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]},
+                                    {id: 5, name: 'E PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]}
+                                ]
+                            },
+                            {
+                                id: 2, 
+                                name: '2', 
+                                img: 'https://drive.google.com/uc?export=view&id=YOUR_IMAGE_ID_2',
+                                parts: [
+                                    {id: 1, name: 'A PART', tests: [{id: 1, name: 'TEST 1', href: 'test1.html'}, {id: 2, name: 'TEST 2', href: 'test2.html'}]}
+                                ]
+                            }
+                        ]
+                    };
+                    database.ref('/').set(data);
+                }
+                document.getElementById('mainTitle').innerText = data.mainTitle;
+                renderCards();
+            }, error => {
+                console.error("Error loading from Firebase:", error);
+                alert("Failed to load data from Firebase!");
+            });
+        }
+    </script>
+</body>
+</html>
