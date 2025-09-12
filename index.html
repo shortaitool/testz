@@ -146,7 +146,6 @@
             storageBucket: "test-246af.firebasestorage.app",
             messagingSenderId: "1025448533875",
             appId: "1:1025448533875:web:465de230000c809a1cef06",
-            measurementId: "G-JGJ6GMH73L"
         };
 
         // Initialize Firebase
@@ -164,30 +163,46 @@
             cards: []
         };
 
+        // Admin emails (replace with your actual admin email)
+        const adminEmails = ['YOUR_ADMIN_EMAIL_HERE']; // e.g., ['admin@yourdomain.com']
+
         // Listen for auth state changes
         auth.onAuthStateChanged((firebaseUser) => {
             user = firebaseUser;
             if (user) {
-                // User is signed in, check if admin
+                // Check if user is admin
                 checkAdminRole(user);
             } else {
                 // User is signed out
                 document.getElementById('adminPanel').classList.add('hidden');
                 document.getElementById('adminLogin').classList.add('hidden');
+                openSlide(1);
             }
         });
 
         function checkAdminRole(firebaseUser) {
-            // Check if user is admin (you can store admin emails in database or hardcode for now)
-            const adminEmails = ['admin@example.com']; // Replace with actual admin emails or fetch from DB
+            // First, check hardcoded admin emails
             if (adminEmails.includes(firebaseUser.email)) {
                 document.querySelectorAll('.slide').forEach(slide => slide.classList.add('hidden'));
                 document.getElementById('adminPanel').classList.remove('hidden');
                 renderAdminEditors();
-            } else {
-                alert('आपको एडमिन एक्सेस नहीं है!');
-                signOutAdmin();
+                return;
             }
+            // Fallback: Check Firebase database for admin UID
+            database.ref(`admins/${firebaseUser.uid}`).once('value').then(snapshot => {
+                if (snapshot.exists() && snapshot.val() === true) {
+                    document.querySelectorAll('.slide').forEach(slide => slide.classList.add('hidden'));
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    renderAdminEditors();
+                } else {
+                    alert('आपको एडमिन एक्सेस नहीं है!');
+                    signOutAdmin();
+                }
+            }).catch(error => {
+                console.error('Error checking admin role:', error);
+                alert('एडमिन रोल चेक करने में त्रुटि: ' + error.message);
+                signOutAdmin();
+            });
         }
 
         function openSlide(slideNumber, title="", id=null) {
@@ -219,7 +234,6 @@
             }
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    // Signed in successfully
                     console.log('Admin signed in:', userCredential.user);
                 })
                 .catch((error) => {
@@ -234,6 +248,7 @@
                 openSlide(1);
             }).catch((error) => {
                 console.error('Sign out error:', error);
+                alert('साइन आउट में त्रुटि: ' + error.message);
             });
         }
 
@@ -429,6 +444,10 @@
         }
 
         function saveChanges() {
+            if (!user) {
+                alert('कृपया पहले लॉगिन करें!');
+                return;
+            }
             // Save Main Title
             const newMainTitle = document.getElementById('editMainTitle').value;
             if (newMainTitle) data.mainTitle = newMainTitle;
@@ -462,13 +481,13 @@
 
         function updateFirebaseData() {
             if (user) {
-                database.ref('/').set(data).then(() => {
+                database.ref('/data').set(data).then(() => {
                     alert("Changes Saved to Firebase!");
                     document.getElementById('mainTitle').innerText = data.mainTitle;
                     renderCards();
                 }).catch(error => {
                     console.error("Error saving to Firebase:", error);
-                    alert("Failed to save changes!");
+                    alert("Failed to save changes: " + error.message);
                 });
             } else {
                 alert("कृपया पहले लॉगिन करें!");
@@ -478,7 +497,7 @@
         // Load and render from Firebase on start
         window.onload = () => {
             // Listen to Firebase data changes
-            database.ref('/').on('value', (snapshot) => {
+            database.ref('/data').on('value', (snapshot) => {
                 const firebaseData = snapshot.val();
                 if (firebaseData) {
                     data = firebaseData;
@@ -501,13 +520,17 @@
                         ]
                     };
                     data = defaultData;
-                    database.ref('/').set(defaultData);
+                    database.ref('/data').set(defaultData);
                 }
                 // Update other slides if open
                 if (currentCardId) renderParts(currentCardId);
                 if (currentPartId && currentCardId) renderTests(currentCardId, currentPartId);
+                if (user && document.getElementById('adminPanel').classList.contains('hidden') === false) {
+                    renderAdminEditors();
+                }
             }, (error) => {
                 console.error("Error loading from Firebase:", error);
+                alert("डेटा लोड करने में त्रुटि: " + error.message);
             });
 
             // Initial render
